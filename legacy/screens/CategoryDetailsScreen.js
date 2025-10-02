@@ -11,7 +11,7 @@ import {
   Alert,
   Animated,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
 import { Feather, Ionicons } from 'react-native-vector-icons';
 import { starJerrStyles } from '../styles/starJerrStyles';
 import { starJerrTokens } from '../utils/starJerrTokens';

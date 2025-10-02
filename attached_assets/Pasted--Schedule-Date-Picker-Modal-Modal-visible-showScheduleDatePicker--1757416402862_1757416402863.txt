@@ -1,0 +1,103 @@
+   {/* Schedule Date Picker Modal */}
+      <Modal
+        visible={showScheduleDatePicker}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowScheduleDatePicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select date and time</Text>
+
+            <Text style={styles.sectionLabel}>Date</Text>
+            <View style={styles.datePickerRow}>
+              <TouchableOpacity
+                style={styles.datePickerItem}
+                onPress={() => setShowScheduleDayPicker(!showScheduleDayPicker)}
+              >
+                <Text style={styles.datePickerText}>{scheduleSelectedDay}</Text>
+                <Ionicons name="chevron-down" size={16} color="#666" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.datePickerItem}
+                onPress={() =>
+                  setShowScheduleMonthPicker(!showScheduleMonthPicker)
+                }
+              >
+                <Text style={styles.datePickerText}>
+                  {scheduleSelectedMonth}
+                </Text>
+                <Ionicons name="chevron-down" size={16} color="#666" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.datePickerItem}
+                onPress={() =>
+                  setShowScheduleYearPicker(!showScheduleYearPicker)
+                }
+              >
+                <Text style={styles.datePickerText}>
+                  {scheduleSelectedYear}
+                </Text>
+                <Ionicons name="chevron-down" size={16} color="#666" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Schedule Day Picker */}
+            {showScheduleDayPicker && (
+              <View style={styles.pickerDropdown}>
+                <ScrollView style={styles.pickerScrollView}>
+                  {days.map((day) => (
+                    <TouchableOpacity
+                      key={day}
+                      style={styles.pickerOption}
+                      onPress={() => {
+                        setScheduleSelectedDay(day);
+                        setShowScheduleDayPicker(false);
+                      }}
+                    >
+                      <Text style={styles.pickerOptionText}>{day}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Schedule Month Picker */}
+            {showScheduleMonthPicker && (
+              <View style={styles.pickerDropdown}>
+                <ScrollView style={styles.pickerScrollView}>
+                  {months.map((month) => (
+                    <TouchableOpacity
+                      key={month}
+                      style={styles.pickerOption}
+                      onPress={() => {
+                        setScheduleSelectedMonth(month);
+                        setShowScheduleMonthPicker(false);
+                      }}
+                    >
+                      <Text style={styles.pickerOptionText}>{month}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Schedule Year Picker */}
+            {showScheduleYearPicker && (
+              <View style={styles.pickerDropdown}>
+                <ScrollView style={styles.pickerScrollView}>
+                  {years.map((year) => (
+                    <TouchableOpacity
+                      key={year}
+                      style={styles.pickerOption}
+                      onPress={() => {
+                        setScheduleSelectedYear(year.toString());
+                        setShowScheduleYearPicker(false);
+                      }}
+                    >
+                      <Text style={styles.pickerOptionText}>{year}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}

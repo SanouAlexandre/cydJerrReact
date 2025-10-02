@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { Ionicons } from 'react-native-vector-icons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import socketService from '../services/socketService';
 import { commonUIStyles, UI_CONSTANTS } from '../styles/commonUIStyles';
 import { 

@@ -12,7 +12,7 @@ import {
   Share,
 } from 'react-native';
 import Video from 'react-native-video';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
 import { Ionicons } from 'react-native-vector-icons';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { usePost, useLikePost, usePostComments, useAddComment } from '../hooks/useApi';

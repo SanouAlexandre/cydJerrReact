@@ -7,8 +7,8 @@ import {
   StatusBar,
   Platform,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { MaterialCommunityIcons } from "react-native-vector-icons";
+import LinearGradient from 'react-native-linear-gradient';
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import SearchBar from "../components/SearchBar";
 
 const SearchScreen = () => {

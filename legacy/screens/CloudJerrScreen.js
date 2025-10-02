@@ -14,11 +14,11 @@ import {
   StatusBar,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
-import { Ionicons } from 'react-native-vector-icons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
-import * as DocumentPicker from 'expo-document-picker';
+import DocumentPicker from '@react-native-documents/picker';
 import { useCloudStats, useCloudFiles } from '../hooks/useApi';
 import cloudService from '../services/cloudService';
 
@@ -67,14 +67,13 @@ const CloudJerrScreen = () => {
   // Fonction pour sélectionner et uploader un fichier
   const handleFileUpload = async () => {
     try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: '*/*',
-        copyToCacheDirectory: true,
-        multiple: false
+      const result = await DocumentPicker.pick({
+        type: [DocumentPicker.types.allFiles],
+        allowMultiSelection: false,
       });
       
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        const file = result.assets[0];
+      if (result && result.length > 0) {
+        const file = result[0];
         setUploading(true);
         
         await cloudService.uploadFile(file.uri, {
@@ -87,6 +86,10 @@ const CloudJerrScreen = () => {
         await Promise.all([refetchStats(), refetchFiles()]); // Recharger les données
       }
     } catch (error) {
+      if (DocumentPicker.isCancel(error)) {
+        // User cancelled the picker
+        return;
+      }
       console.error('Erreur lors de l\'upload:', error);
       Alert.alert('Erreur', 'Impossible d\'uploader le fichier');
     } finally {

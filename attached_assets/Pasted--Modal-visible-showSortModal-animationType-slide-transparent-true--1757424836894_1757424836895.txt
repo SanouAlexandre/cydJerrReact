@@ -1,0 +1,66 @@
+<Modal
+        visible={showSortModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowSortModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Sort by</Text>
+              <TouchableOpacity
+                style={styles.modalCloseIcon}
+                onPress={() => setShowSortModal(false)}
+              >
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            
+            <TouchableOpacity
+              style={[
+                styles.optionItem,
+                sortOrder === "desc" && styles.selectedOption,
+              ]}
+              onPress={() => {
+                setSortOrder("desc");
+                setShowSortModal(false);
+              }}
+            >
+              <Text
+                style={[
+                  styles.optionText,
+                  sortOrder === "desc" && styles.selectedOptionText,
+                ]}
+              >
+                Newest first
+              </Text>
+              {sortOrder === "desc" && (
+                <Ionicons name="checkmark" size={20} color="#007AFF" />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.optionItem,
+                sortOrder === "asc" && styles.selectedOption,
+              ]}
+              onPress={() => {
+                setSortOrder("asc");
+                setShowSortModal(false);
+              }}
+            >
+              <Text
+                style={[
+                  styles.optionText,
+                  sortOrder === "asc" && styles.selectedOptionText,
+                ]}
+              >
+                Oldest first
+              </Text>
+              {sortOrder === "asc" && (
+                <Ionicons name="checkmark" size="20" color="#007AFF" />
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>

@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import { Ionicons } from 'react-native-vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
 import { commonUIStyles, UI_CONSTANTS } from '../styles/commonUIStyles';
 
 const { width, height } = Dimensions.get('window');

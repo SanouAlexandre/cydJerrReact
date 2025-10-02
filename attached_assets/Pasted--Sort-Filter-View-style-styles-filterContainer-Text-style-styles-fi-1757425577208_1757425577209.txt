@@ -1,0 +1,65 @@
+      {/* Sort Filter */}
+      <View style={styles.filterContainer}>
+        <Text style={styles.filterLabel}>Sort by:</Text>
+        <TouchableOpacity
+          style={styles.pickerButton}
+          onPress={() => setShowSortModal(true)}
+        >
+          <Text style={styles.pickerButtonText}>
+            {sortOrder === "desc" ? "Newest first" : "Oldest first"}
+          </Text>
+          <Ionicons name="chevron-down" size={20} color="#666" />
+        </TouchableOpacity>
+      </View>
+
+      {/* No Posts Message */}
+      {posts.length === 0 && !loading && (
+        <View style={styles.noPosts}>
+          <Text style={styles.noPostsText}>You have no blog posts yet</Text>
+        </View>
+      )}
+
+      {/* Loading Indicator */}
+      {loading && (
+        <ActivityIndicator size="large" color="#007AFF" style={styles.loadingIndicator} />
+      )}
+
+      <View style={styles.createPost}>
+        <TouchableOpacity style={styles.createPostButton}>
+          <Ionicons name="add" size={20} color="#007AFF" />
+          <Text style={styles.createPostText}>What's on your mind?</Text>
+        </TouchableOpacity>
+      </View>
+
+      {posts.map((post) => (
+        <View key={post.id} style={styles.postCard}>
+          <View style={styles.postHeader}>
+            <Image
+              source={{
+                uri: "https://demo.peepso.com/wp-content/peepso/users/2/ec758423ef-avatar-full.jpg",
+              }}
+              style={styles.postAvatar}
+            />
+            <View style={styles.postInfo}>
+              <Text style={styles.postAuthor}>Ashley Smith</Text>
+              <Text style={styles.postTime}>{post.timestamp}</Text>
+            </View>
+          </View>
+
+          <Text style={styles.postContent}>{post.content}</Text>
+
+          <View style={styles.postActions}>
+            <TouchableOpacity style={styles.actionButton}>
+              <Ionicons name="heart-outline" size={18} color="#666" />
+              <Text style={styles.actionText}>{post.likes}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionButton}>
+              <Ionicons name="chatbubble-outline" size={18} color="#666" />
+              <Text style={styles.actionText}>{post.comments}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionButton}>
+              <Ionicons name="share-outline" size={18} color="#666" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      ))}

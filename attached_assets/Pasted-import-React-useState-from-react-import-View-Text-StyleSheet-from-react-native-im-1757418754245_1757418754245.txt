@@ -1,0 +1,93 @@
+import React, { useState } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
+
+const PagesFilters = ({ onFiltersChange }) => {
+  const [sortBy, setSortBy] = useState('id');
+  const [sortOrder, setSortOrder] = useState('DESC');
+  const [searchMode, setSearchMode] = useState('exact');
+
+  const handleChange = (filterType, value) => {
+    if (filterType === 'sortBy') setSortBy(value);
+    if (filterType === 'sortOrder') setSortOrder(value);
+    if (filterType === 'searchMode') setSearchMode(value);
+
+    if (onFiltersChange) {
+      onFiltersChange({
+        sortBy: filterType === 'sortBy' ? value : sortBy,
+        sortOrder: filterType === 'sortOrder' ? value : sortOrder,
+        searchMode: filterType === 'searchMode' ? value : searchMode,
+      });
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      {/* Sort By */}
+      <View style={styles.filterGroup}>
+        <Text style={styles.label}>Sort</Text>
+        <Picker
+          selectedValue={sortBy}
+          onValueChange={(val) => handleChange('sortBy', val)}
+          style={styles.picker}
+        >
+          <Picker.Item label="Recently added" value="id" />
+          <Picker.Item label="Alphabetical" value="post_title" />
+          <Picker.Item label="Followers count" value="meta_members_count" />
+        </Picker>
+      </View>
+
+      {/* Sort Order */}
+      <View style={styles.filterGroup}>
+        <Text style={styles.label}>Order</Text>
+        <Picker
+          selectedValue={sortOrder}
+          onValueChange={(val) => handleChange('sortOrder', val)}
+          style={styles.picker}
+        >
+          <Picker.Item label="Descending" value="DESC" />
+          <Picker.Item label="Ascending" value="ASC" />
+        </Picker>
+      </View>
+
+      {/* Search Mode */}
+      <View style={styles.filterGroup}>
+        <Text style={styles.label}>Search Mode</Text>
+        <Picker
+          selectedValue={searchMode}
+          onValueChange={(val) => handleChange('searchMode', val)}
+          style={styles.picker}
+        >
+          <Picker.Item label="Exact phrase" value="exact" />
+          <Picker.Item label="Any of the words" value="any" />
+        </Picker>
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: '#fff',
+    padding: 15,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#eee',
+  },
+  filterGroup: {
+    marginBottom: 15,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 5,
+    color: '#333',
+  },
+  picker: {
+    height: 40,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+  },
+});
+
+export default PagesFilters;

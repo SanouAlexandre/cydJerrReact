@@ -14,11 +14,11 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
 import { Ionicons, MaterialIcons } from 'react-native-vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { Camera } from 'expo-camera';
-import * as ImagePicker from 'expo-image-picker';
+import { Camera, useCameraDevices, useCameraPermission } from 'react-native-vision-camera';
+import {launchImageLibrary, MediaType, ImagePickerResponse} from 'react-native-image-picker';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../redux/userSlice';
 import { useCreateLive } from '../hooks/useApi';
@@ -41,10 +41,12 @@ const LiveSetupScreen = () => {
   const [allowComments, setAllowComments] = useState(true);
   const [allowRecording, setAllowRecording] = useState(true);
   const [thumbnail, setThumbnail] = useState(null);
-  const [hasPermission, setHasPermission] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   
   const cameraRef = useRef(null);
+  const { hasPermission, requestPermission } = useCameraPermission();
+  const devices = useCameraDevices();
+  const device = devices.front;
   
   const categories = [
     'Général',
@@ -60,33 +62,42 @@ const LiveSetupScreen = () => {
   ];
 
   React.useEffect(() => {
-    (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
-    })();
-  }, []);
+    if (!hasPermission) {
+      requestPermission();
+    }
+  }, [hasPermission, requestPermission]);
 
   const pickThumbnail = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [16, 9],
+    const options = {
+      mediaType: 'photo',
       quality: 0.8,
-    });
+      includeBase64: false,
+    };
 
-    if (!result.canceled) {
-      setThumbnail(result.assets[0]);
-    }
+    launchImageLibrary(options, (response: ImagePickerResponse) => {
+      if (response.didCancel || response.errorMessage) {
+        return;
+      }
+
+      if (response.assets && response.assets.length > 0) {
+        setThumbnail(response.assets[0]);
+      }
+    });
   };
 
   const takeThumbnailPhoto = async () => {
     if (cameraRef.current) {
-      const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.8,
-        base64: false,
-      });
-      setThumbnail(photo);
-      setShowPreview(false);
+      try {
+        const photo = await cameraRef.current.takePhoto({
+          qualityPrioritization: 'quality',
+          flash: 'off',
+        });
+        setThumbnail({ uri: photo.path });
+        setShowPreview(false);
+      } catch (error) {
+        console.error('Error taking photo:', error);
+        Alert.alert('Erreur', 'Impossible de prendre la photo');
+      }
     }
   };
 
@@ -188,7 +199,7 @@ const LiveSetupScreen = () => {
   );
 
   const renderCameraPreview = () => {
-    if (!showPreview || hasPermission !== true) return null;
+    if (!showPreview || !hasPermission || !device) return null;
 
     return (
       <View style={styles.cameraPreviewContainer}>
@@ -196,8 +207,9 @@ const LiveSetupScreen = () => {
           <Camera
             ref={cameraRef}
             style={styles.camera}
-            type={Camera.Constants.Type.front}
-            ratio="16:9"
+            device={device}
+            isActive={showPreview}
+            photo={true}
           >
             <View style={styles.cameraOverlay}>
               <TouchableOpacity 

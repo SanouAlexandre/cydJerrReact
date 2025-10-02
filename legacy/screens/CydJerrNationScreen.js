@@ -10,32 +10,21 @@ import {
   StatusBar,
   Platform,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { MaterialCommunityIcons } from "react-native-vector-icons";
+import LinearGradient from 'react-native-linear-gradient';
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import * as Font from "expo-font";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 const CydJerrNationScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
-  const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [fontsLoaded, setFontsLoaded] = useState(true); // Set to true since we're removing font loading
 
-  // Chargement de la police Poppins
+  // Remove font loading since React Native handles fonts differently
   useEffect(() => {
-    const loadFonts = async () => {
-      try {
-        await Font.loadAsync({
-          "Poppins-Regular": require("../assets/fonts/Poppins-Regular.ttf"),
-          "Poppins-Bold": require("../assets/fonts/Poppins-Bold.ttf"),
-        });
-        setFontsLoaded(true);
-      } catch (error) {
-        console.log("Erreur de chargement des polices:", error);
-        setFontsLoaded(true); // Continuer même sans les polices
-      }
-    };
-    loadFonts();
+    // Font loading is handled by React Native's font system
+    // Custom fonts should be registered in react-native.config.js or android/ios configs
+    setFontsLoaded(true);
   }, []);
 
   // Données des statistiques

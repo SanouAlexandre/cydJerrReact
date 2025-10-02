@@ -12,16 +12,17 @@ import {
   Alert,
   ActivityIndicator,
   RefreshControl,
-  Clipboard,
   StatusBar,
 } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
-import { Feather, MaterialCommunityIcons, Ionicons } from 'react-native-vector-icons';
+import Feather from 'react-native-vector-icons/Feather';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectUser } from '../redux/userSlice';
-import { useFonts } from 'expo-font';
 import walletService from '../services/walletService';
 import solanaService from '../services/solanaService';
 import investmentService from '../services/investmentService';
@@ -31,11 +32,6 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 const CapiJerrProfileScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   // Hooks
-  const [fontsLoaded] = useFonts({
-    'Poppins-Regular': require('../assets/fonts/Poppins-Regular.ttf'),
-    'Poppins-Bold': require('../assets/fonts/Poppins-Bold.ttf'),
-  });
-
   const user = useSelector(selectUser);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

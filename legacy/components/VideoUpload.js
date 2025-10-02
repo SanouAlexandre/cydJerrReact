@@ -11,10 +11,10 @@ import {
   ScrollView,
   Platform,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
 import { Ionicons } from 'react-native-vector-icons';
-import * as ImagePicker from 'expo-image-picker';
-import * as DocumentPicker from 'expo-document-picker';
+import {launchImageLibrary, launchCamera, MediaType, ImagePickerResponse} from 'react-native-image-picker';
+import DocumentPicker from '@react-native-documents/picker';
 
 import { useCreatePost, useCreateVideoPost } from '../hooks/useApi';
 
@@ -48,25 +48,7 @@ const VideoUpload = ({ visible, onClose, onSuccess }) => {
   }, []);
   
   const requestPermissions = useCallback(async () => {
-    if (Platform.OS !== 'web') {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(
-          'Permission requise',
-          'Nous avons besoin de la permission d\'accéder à votre galerie pour sélectionner des médias.'
-        );
-        return false;
-      }
-      
-      const cameraStatus = await ImagePicker.requestCameraPermissionsAsync();
-      if (cameraStatus.status !== 'granted') {
-        Alert.alert(
-          'Permission requise',
-          'Nous avons besoin de la permission d\'accéder à votre caméra pour enregistrer des vidéos.'
-        );
-        return false;
-      }
-    }
+    // react-native-image-picker handles permissions automatically
     return true;
   }, []);
   
@@ -75,53 +57,62 @@ const VideoUpload = ({ visible, onClose, onSuccess }) => {
     if (!hasPermission) return;
     
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
-        allowsEditing: true,
-        aspect: [16, 9],
+      const options = {
+        mediaType: 'video',
         quality: 0.8,
-        videoMaxDuration: 300, // 5 minutes max
+        videoQuality: 'medium',
+        durationLimit: 30,
+      };
+
+      launchImageLibrary(options, (response: ImagePickerResponse) => {
+        if (response.didCancel || response.errorMessage) {
+          if (response.errorMessage) {
+            console.error('Erreur lors de la sélection de vidéo:', response.errorMessage);
+            Alert.alert('Erreur', 'Impossible de sélectionner la vidéo');
+          }
+          return;
+        }
+
+        if (response.assets && response.assets[0]) {
+          const asset = response.assets[0];
+          
+          // Déterminer le type MIME basé sur l'extension du fichier
+          const fileExtension = asset.uri?.split('.').pop()?.toLowerCase();
+          let mimeType = 'video/mp4'; // Type par défaut
+          
+          switch (fileExtension) {
+            case 'mov':
+              mimeType = 'video/mov';
+              break;
+            case 'avi':
+              mimeType = 'video/avi';
+              break;
+            case 'mkv':
+              mimeType = 'video/mkv';
+              break;
+            case 'webm':
+              mimeType = 'video/webm';
+              break;
+            default:
+              mimeType = 'video/mp4';
+          }
+          
+          setSelectedMedia({
+            uri: asset.uri,
+            type: mimeType,
+            name: asset.fileName || `video_${Date.now()}.${fileExtension || 'mp4'}`,
+            duration: asset.duration,
+            width: asset.width,
+            height: asset.height,
+          });
+          setMediaType('video');
+          
+          // Déterminer si c'est un short (< 60 secondes)
+          if (asset.duration && asset.duration < 60000) {
+            setIsShort(true);
+          }
+        }
       });
-      
-      if (!result.canceled && result.assets[0]) {
-        const asset = result.assets[0];
-        
-        // Déterminer le type MIME basé sur l'extension du fichier
-        const fileExtension = asset.uri.split('.').pop()?.toLowerCase();
-        let mimeType = 'video/mp4'; // Type par défaut
-        
-        switch (fileExtension) {
-          case 'mov':
-            mimeType = 'video/mov';
-            break;
-          case 'avi':
-            mimeType = 'video/avi';
-            break;
-          case 'mkv':
-            mimeType = 'video/mkv';
-            break;
-          case 'webm':
-            mimeType = 'video/webm';
-            break;
-          default:
-            mimeType = 'video/mp4';
-        }
-        
-        setSelectedMedia({
-          uri: asset.uri,
-          type: mimeType,
-          name: `video_${Date.now()}.${fileExtension || 'mp4'}`,
-          duration: asset.duration,
-          width: asset.width,
-          height: asset.height,
-        });
-        setMediaType('video');
-        
-        // Déterminer si c'est un short (< 60 secondes)
-        if (asset.duration && asset.duration < 60000) {
-          setIsShort(true);
-        }
-      }
     } catch (error) {
       console.error('Erreur lors de la sélection de vidéo:', error);
       Alert.alert('Erreur', 'Impossible de sélectionner la vidéo');
@@ -133,53 +124,62 @@ const VideoUpload = ({ visible, onClose, onSuccess }) => {
     if (!hasPermission) return;
     
     try {
-      const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
-        allowsEditing: true,
-        aspect: [16, 9],
+      const options = {
+        mediaType: 'video',
         quality: 0.8,
-        videoMaxDuration: 300, // 5 minutes max
+        videoQuality: 'medium',
+        durationLimit: 300, // 5 minutes max
+      };
+
+      launchCamera(options, (response: ImagePickerResponse) => {
+        if (response.didCancel || response.errorMessage) {
+          if (response.errorMessage) {
+            console.error('Erreur lors de l\'enregistrement:', response.errorMessage);
+            Alert.alert('Erreur', 'Impossible d\'enregistrer la vidéo');
+          }
+          return;
+        }
+
+        if (response.assets && response.assets[0]) {
+          const asset = response.assets[0];
+          
+          // Déterminer le type MIME basé sur l'extension du fichier
+          const fileExtension = asset.uri?.split('.').pop()?.toLowerCase();
+          let mimeType = 'video/mp4'; // Type par défaut
+          
+          switch (fileExtension) {
+            case 'mov':
+              mimeType = 'video/mov';
+              break;
+            case 'avi':
+              mimeType = 'video/avi';
+              break;
+            case 'mkv':
+              mimeType = 'video/mkv';
+              break;
+            case 'webm':
+              mimeType = 'video/webm';
+              break;
+            default:
+              mimeType = 'video/mp4';
+          }
+          
+          setSelectedMedia({
+            uri: asset.uri,
+            type: mimeType,
+            name: asset.fileName || `video_${Date.now()}.${fileExtension || 'mp4'}`,
+            duration: asset.duration,
+            width: asset.width,
+            height: asset.height,
+          });
+          setMediaType('video');
+          
+          // Déterminer si c'est un short (< 60 secondes)
+          if (asset.duration && asset.duration < 60000) {
+            setIsShort(true);
+          }
+        }
       });
-      
-      if (!result.canceled && result.assets[0]) {
-        const asset = result.assets[0];
-        
-        // Déterminer le type MIME basé sur l'extension du fichier
-        const fileExtension = asset.uri.split('.').pop()?.toLowerCase();
-        let mimeType = 'video/mp4'; // Type par défaut
-        
-        switch (fileExtension) {
-          case 'mov':
-            mimeType = 'video/mov';
-            break;
-          case 'avi':
-            mimeType = 'video/avi';
-            break;
-          case 'mkv':
-            mimeType = 'video/mkv';
-            break;
-          case 'webm':
-            mimeType = 'video/webm';
-            break;
-          default:
-            mimeType = 'video/mp4';
-        }
-        
-        setSelectedMedia({
-          uri: asset.uri,
-          type: mimeType,
-          name: `video_${Date.now()}.${fileExtension || 'mp4'}`,
-          duration: asset.duration,
-          width: asset.width,
-          height: asset.height,
-        });
-        setMediaType('video');
-        
-        // Déterminer si c'est un short (< 60 secondes)
-        if (asset.duration && asset.duration < 60000) {
-          setIsShort(true);
-        }
-      }
     } catch (error) {
       console.error('Erreur lors de l\'enregistrement:', error);
       Alert.alert('Erreur', 'Impossible d\'enregistrer la vidéo');
@@ -191,47 +191,55 @@ const VideoUpload = ({ visible, onClose, onSuccess }) => {
     if (!hasPermission) return;
     
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [16, 9],
+      const options = {
+        mediaType: 'photo',
         quality: 0.8,
-      });
-      
-      if (!result.canceled && result.assets[0]) {
-        const asset = result.assets[0];
-        
-        // Déterminer le type MIME basé sur l'extension du fichier
-        const fileExtension = asset.uri.split('.').pop()?.toLowerCase();
-        let mimeType = 'image/jpeg'; // Type par défaut
-        
-        switch (fileExtension) {
-          case 'png':
-            mimeType = 'image/png';
-            break;
-          case 'gif':
-            mimeType = 'image/gif';
-            break;
-          case 'webp':
-            mimeType = 'image/webp';
-            break;
-          case 'jpg':
-          case 'jpeg':
-            mimeType = 'image/jpeg';
-            break;
-          default:
-            mimeType = 'image/jpeg';
+      };
+
+      launchImageLibrary(options, (response: ImagePickerResponse) => {
+        if (response.didCancel || response.errorMessage) {
+          if (response.errorMessage) {
+            console.error('Erreur lors de la sélection d\'image:', response.errorMessage);
+            Alert.alert('Erreur', 'Impossible de sélectionner l\'image');
+          }
+          return;
         }
-        
-        setSelectedMedia({
-          uri: asset.uri,
-          type: mimeType,
-          name: `image_${Date.now()}.${fileExtension || 'jpg'}`,
-          width: asset.width,
-          height: asset.height,
-        });
-        setMediaType('image');
-      }
+
+        if (response.assets && response.assets[0]) {
+          const asset = response.assets[0];
+          
+          // Déterminer le type MIME basé sur l'extension du fichier
+          const fileExtension = asset.uri?.split('.').pop()?.toLowerCase();
+          let mimeType = 'image/jpeg'; // Type par défaut
+          
+          switch (fileExtension) {
+            case 'png':
+              mimeType = 'image/png';
+              break;
+            case 'gif':
+              mimeType = 'image/gif';
+              break;
+            case 'webp':
+              mimeType = 'image/webp';
+              break;
+            case 'jpg':
+            case 'jpeg':
+              mimeType = 'image/jpeg';
+              break;
+            default:
+              mimeType = 'image/jpeg';
+          }
+          
+          setSelectedMedia({
+            uri: asset.uri,
+            type: mimeType,
+            name: asset.fileName || `image_${Date.now()}.${fileExtension || 'jpg'}`,
+            width: asset.width,
+            height: asset.height,
+          });
+          setMediaType('image');
+        }
+      });
     } catch (error) {
       console.error('Erreur lors de la sélection d\'image:', error);
       Alert.alert('Erreur', 'Impossible de sélectionner l\'image');

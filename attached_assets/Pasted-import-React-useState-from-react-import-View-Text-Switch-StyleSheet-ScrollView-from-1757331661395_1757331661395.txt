@@ -1,0 +1,86 @@
+import React, { useState } from "react";
+import { View, Text, Switch, StyleSheet, ScrollView } from "react-native";
+
+// Notification item component
+const NotificationItem = ({ title, subtitle, types }) => {
+  const [state, setState] = useState(
+    Object.fromEntries(types.map((type) => [type, true]))
+  );
+
+  const toggleSwitch = (type) => {
+    setState((prev) => ({ ...prev, [type]: !prev[type] }));
+  };
+
+  return (
+    <View style={styles.notificationItem}>
+      <Text style={styles.notificationTitle}>{title}</Text>
+      {subtitle && <Text style={styles.notificationSubtitle}>{subtitle}</Text>}
+      <View style={styles.switchRow}>
+        {types.map((type) => (
+          <View key={type} style={styles.switchContainer}>
+            <Text style={styles.switchLabel}>{type.replace("_", " ")}</Text>
+            <Switch
+              value={state[type]}
+              onValueChange={() => toggleSwitch(type)}
+            />
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+};
+
+// Main component
+const AllNotifications = () => {
+  const notifications = [
+    { title: "Someone commented on a post", subtitle: "Applies to all posts you follow", types: ["onsite", "email", "app_push"] },
+    { title: "Someone reacted to a post", subtitle: "Applies to all posts you follow", types: ["onsite", "email", "app_push"] },
+    { title: "Someone reacted to my comment", types: ["onsite", "email", "app_push"] },
+    { title: "Someone replied to my comment", types: ["onsite", "email", "app_push"] },
+    { title: "Someone liked my profile", types: ["onsite", "email", "app_push"] },
+    { title: "Someone wrote a post on my profile", types: ["onsite", "email", "app_push"] },
+    { title: "Someone mentioned me in a post", types: ["onsite", "email", "app_push"] },
+    { title: "Someone mentioned me in a comment", types: ["onsite", "email", "app_push"] },
+    { title: "Someone sent me a new message", types: ["onsite", "email", "app_push"] },
+    { title: "Someone sent me a friend request", types: ["onsite", "email", "app_push"] },
+    { title: "Video conversion complete", types: ["onsite", "email", "app_push"] },
+    { title: "Video conversion failed", types: ["onsite", "email", "app_push"] },
+    { title: "Classic Cars (Group)", types: ["onsite", "email", "app_push"] },
+    { title: "Everyone loves Andrea (Group)", types: ["onsite", "email", "app_push"] },
+    { title: "Exit Festival (Group)", types: ["onsite", "email", "app_push"] },
+    { title: "PeepSo Updates (Group)", types: ["onsite", "email", "app_push"] },
+    { title: "Sports Today (Group)", types: ["onsite", "email", "app_push"] },
+    { title: "Awedesk (Page)", types: ["onsite", "email", "app_push"] },
+  ];
+
+  return (
+    <ScrollView style={styles.container}>
+      <Text style={styles.header}>All notifications</Text>
+      <Text style={styles.description}>
+        Email notifications require an on-site notification enabled.
+      </Text>
+      {notifications.map((notif, index) => (
+        <NotificationItem
+          key={index}
+          title={notif.title}
+          subtitle={notif.subtitle}
+          types={notif.types}
+        />
+      ))}
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 16, backgroundColor: "#fff" },
+  header: { fontSize: 20, fontWeight: "bold", marginBottom: 8 },
+  description: { fontSize: 14, color: "#555", marginBottom: 16 },
+  notificationItem: { marginBottom: 16, padding: 12, borderWidth: 1, borderColor: "#ddd", borderRadius: 8 },
+  notificationTitle: { fontSize: 16, fontWeight: "500" },
+  notificationSubtitle: { fontSize: 12, color: "#777", marginBottom: 8 },
+  switchRow: { flexDirection: "row", justifyContent: "space-between" },
+  switchContainer: { alignItems: "center" },
+  switchLabel: { fontSize: 12, marginBottom: 4 },
+});
+
+export default AllNotifications;

@@ -1,0 +1,151 @@
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  Image,
+  TouchableOpacity,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
+
+interface GiphyImage {
+  id: string;
+  url: string;
+}
+
+export default function GiphySelector() {
+  const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [gifs, setGifs] = useState<GiphyImage[]>([]);
+  const [selectedGif, setSelectedGif] = useState<GiphyImage | null>(null);
+
+  // Simulate Giphy API search
+  const fetchGifs = async (searchTerm: string) => {
+    setLoading(true);
+    try {
+      // Replace with your Giphy API key
+      const API_KEY = "YOUR_GIPHY_API_KEY";
+      const response = await fetch(
+        `https://api.giphy.com/v1/gifs/search?api_key=${API_KEY}&q=${searchTerm}&limit=25`
+      );
+      const json = await response.json();
+      const gifs = json.data.map((item: any) => ({
+        id: item.id,
+        url: item.images.fixed_width.url,
+      }));
+      setGifs(gifs);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (query.length > 2) {
+      fetchGifs(query);
+    } else {
+      setGifs([]);
+    }
+  }, [query]);
+
+  return (
+    <View style={styles.container}>
+      {/* Search Input */}
+      <View style={styles.searchContainer}>
+        <TextInput
+          placeholder="Search..."
+          style={styles.searchInput}
+          value={query}
+          onChangeText={setQuery}
+        />
+        <Text style={styles.powered}>Powered by GIPHY</Text>
+      </View>
+
+      {/* Loading */}
+      {loading && <ActivityIndicator size="large" color="#007bff" />}
+
+      {/* Selected GIF Preview */}
+      {selectedGif && (
+        <View style={styles.previewContainer}>
+          <Image source={{ uri: selectedGif.url }} style={styles.previewImage} />
+          <TouchableOpacity
+            style={styles.changeButton}
+            onPress={() => setSelectedGif(null)}
+          >
+            <Text style={styles.changeText}>Change Image</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* GIF List */}
+      {!selectedGif && (
+        <FlatList
+          data={gifs}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity onPress={() => setSelectedGif(item)}>
+              <Image source={{ uri: item.url }} style={styles.gifImage} />
+            </TouchableOpacity>
+          )}
+          contentContainerStyle={styles.gifList}
+        />
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 12,
+    backgroundColor: "#fff",
+    flex: 1,
+  },
+  searchContainer: {
+    marginBottom: 12,
+  },
+  searchInput: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    padding: 8,
+    fontSize: 16,
+  },
+  powered: {
+    fontSize: 12,
+    color: "#999",
+    marginTop: 4,
+  },
+  previewContainer: {
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  previewImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 10,
+    marginBottom: 8,
+  },
+  changeButton: {
+    padding: 8,
+    backgroundColor: "#007bff",
+    borderRadius: 6,
+  },
+  changeText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  gifList: {
+    flexDirection: "row",
+  },
+  gifImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+    marginRight: 8,
+  },
+});

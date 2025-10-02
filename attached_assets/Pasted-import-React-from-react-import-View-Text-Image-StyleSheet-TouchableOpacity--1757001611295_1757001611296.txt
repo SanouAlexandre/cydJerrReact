@@ -1,0 +1,138 @@
+import React from "react";
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  Dimensions,
+} from "react-native";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+
+interface ProfileCoverProps {
+  coverUrl: string;
+  avatarUrl: string;
+  name: string;
+  isOnline?: boolean;
+  onUpdateInfo?: () => void;
+  onChangeCover?: () => void;
+  onChangeAvatar?: () => void;
+}
+
+const { width } = Dimensions.get("window");
+
+const ProfileCover: React.FC<ProfileCoverProps> = ({
+  coverUrl,
+  avatarUrl,
+  name,
+  isOnline = false,
+  onUpdateInfo,
+  onChangeCover,
+  onChangeAvatar,
+}) => {
+  return (
+    <View style={styles.container}>
+      {/* Cover Image */}
+      <Image source={{ uri: coverUrl }} style={styles.coverImage} />
+
+      {/* Avatar */}
+      <View style={styles.avatarWrapper}>
+        <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+        {isOnline && <View style={styles.onlineIndicator} />}
+
+        {/* Change Avatar Button */}
+        <TouchableOpacity style={styles.changeAvatarBtn} onPress={onChangeAvatar}>
+          <Ionicons name="camera" size={16} color="#fff" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Update Info Button */}
+      <TouchableOpacity style={styles.updateBtn} onPress={onUpdateInfo}>
+        <Ionicons name="person-circle-outline" size={18} color="#fff" />
+        <Text style={styles.updateBtnText}>Update Info</Text>
+      </TouchableOpacity>
+
+      {/* Change Cover Button */}
+      <TouchableOpacity style={styles.changeCoverBtn} onPress={onChangeCover}>
+        <MaterialIcons name="image" size={18} color="#fff" />
+        <Text style={styles.changeCoverText}>Change Cover</Text>
+      </TouchableOpacity>
+
+      {/* Profile Name */}
+      <View style={styles.nameWrapper}>
+        <Text style={styles.name}>{name}</Text>
+      </View>
+    </View>
+  );
+};
+
+export default ProfileCover;
+
+const styles = StyleSheet.create({
+  container: {
+    width: "100%",
+    alignItems: "center",
+    backgroundColor: "#f5f5f5",
+  },
+  coverImage: {
+    width: width,
+    height: 180,
+  },
+  avatarWrapper: {
+    position: "absolute",
+    bottom: -40,
+    left: 20,
+  },
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 3,
+    borderColor: "#fff",
+  },
+  onlineIndicator: {
+    position: "absolute",
+    bottom: 4,
+    right: 4,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: "#4CAF50",
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+  changeAvatarBtn: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    borderRadius: 20,
+    padding: 4,
+  },
+  updateBtn: {
+    position: "absolute",
+    right: 20,
+    bottom: 60,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  updateBtnText: { color: "#fff", marginLeft: 4, fontSize: 12 },
+  changeCoverBtn: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  changeCoverText: { color: "#fff", marginLeft: 4, fontSize: 12 },
+  nameWrapper: { marginTop: 50, marginBottom: 10 },
+  name: { fontSize: 20, fontWeight: "bold" },
+});

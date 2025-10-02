@@ -17,12 +17,13 @@ import {
   StatusBar,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
-import { Feather, MaterialCommunityIcons, Ionicons } from 'react-native-vector-icons';
+import Feather from 'react-native-vector-icons/Feather';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectUser } from '../redux/userSlice';
-import { useFonts } from 'expo-font';
 import walletService from '../services/walletService';
 import solanaService from '../services/solanaService';
 import investmentService from '../services/investmentService';
@@ -35,7 +36,7 @@ const mockPlans = [
   {
     id: 1,
     name: 'Plan Conservateur',
-    balance: 15420.50,
+    balance: 15420.5,
     yield: 8.2,
     trend: 'up',
     allocation: { stocks: 20, bonds: 80 },
@@ -85,14 +86,11 @@ const mockStats = [
 
 const CapiJerrScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
+  // Fonts loading removed in migration; gate with a static true flag
+  const fontsLoaded = true;
   // TOUS LES HOOKS DOIVENT ÊTRE APPELÉS DANS LE MÊME ORDRE À CHAQUE RENDU
-  
-  // 1. Hook useFonts en premier
-  const [fontsLoaded] = useFonts({
-    'Poppins-Regular': require('../assets/fonts/Poppins-Regular.ttf'),
-    'Poppins-Bold': require('../assets/fonts/Poppins-Bold.ttf'),
-  });
 
+  // 1. Hook useFonts en premier
   // 2. Hooks Redux
   const user = useSelector(selectUser);
 
@@ -116,7 +114,7 @@ const CapiJerrScreen = ({ navigation }) => {
   const [syncingBalance, setSyncingBalance] = useState(false);
   const [transferAddress, setTransferAddress] = useState('');
   const [transferAmount, setTransferAmount] = useState('');
-  
+
   // 4. Hooks useRef
   const glowAnim = useRef(new Animated.Value(1)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -144,7 +142,10 @@ const CapiJerrScreen = ({ navigation }) => {
       const history = await walletService.getJerrPriceHistory(period);
       setPriceHistory(history);
     } catch (error) {
-      console.error('Erreur lors du chargement de l\'historique des prix:', error);
+      console.error(
+        "Erreur lors du chargement de l'historique des prix:",
+        error,
+      );
     }
   };
 
@@ -153,7 +154,10 @@ const CapiJerrScreen = ({ navigation }) => {
       const security = await walletService.getWalletSecurity();
       setSecurityInfo(security);
     } catch (error) {
-      console.error('Erreur lors du chargement des informations de sécurité:', error);
+      console.error(
+        'Erreur lors du chargement des informations de sécurité:',
+        error,
+      );
     }
   };
 
@@ -170,26 +174,37 @@ const CapiJerrScreen = ({ navigation }) => {
     setSyncingBalance(true);
     try {
       // Utiliser les nouvelles fonctions consolidées
-      const consolidatedBalances = await walletService.getConsolidatedBalances().catch(() => ({
-        totalJerrBalance: 0,
-        totalSolBalance: 0,
-        totalValueEUR: 0
-      }));
-      
+      const consolidatedBalances = await walletService
+        .getConsolidatedBalances()
+        .catch(() => ({
+          totalJerrBalance: 0,
+          totalSolBalance: 0,
+          totalValueEUR: 0,
+        }));
+
       // Mettre à jour les données du wallet principal avec les soldes consolidés
       setWallet(prevWallet => ({
         ...prevWallet,
         balance: consolidatedBalances.totalJerrBalance,
         solBalance: consolidatedBalances.totalSolBalance,
-        balanceUsd: consolidatedBalances.totalValueEUR
+        balanceUsd: consolidatedBalances.totalValueEUR,
       }));
-      
+
       // Optionnellement synchroniser avec le backend
       await walletService.syncSolanaBalance();
-      
+
       // Recharger les données du portefeuille après synchronisation
       await loadWalletData();
-      Alert.alert('Succès', `Solde synchronisé avec succès\nJERR: ${(Number(consolidatedBalances.totalJerrBalance) || 0).toLocaleString()}\nSOL: ${(Number(consolidatedBalances.totalSolBalance) || 0).toFixed(4)}\nValeur: ${(Number(consolidatedBalances.totalValueEUR) || 0).toFixed(2)} EUR`);
+      Alert.alert(
+        'Succès',
+        `Solde synchronisé avec succès\nJERR: ${(
+          Number(consolidatedBalances.totalJerrBalance) || 0
+        ).toLocaleString()}\nSOL: ${(
+          Number(consolidatedBalances.totalSolBalance) || 0
+        ).toFixed(4)}\nValeur: ${(
+          Number(consolidatedBalances.totalValueEUR) || 0
+        ).toFixed(2)} EUR`,
+      );
     } catch (error) {
       console.error('Erreur lors de la synchronisation:', error);
       Alert.alert('Erreur', 'Impossible de synchroniser le solde');
@@ -200,11 +215,13 @@ const CapiJerrScreen = ({ navigation }) => {
 
   const copyWalletAddress = async () => {
     if (wallet?.solana?.publicKey) {
-      const success = await walletService.copyAddressToClipboard(wallet.solana.publicKey);
+      const success = await walletService.copyAddressToClipboard(
+        wallet.solana.publicKey,
+      );
       if (success) {
         Alert.alert('Succès', 'Adresse copiée dans le presse-papiers');
       } else {
-        Alert.alert('Erreur', 'Impossible de copier l\'adresse');
+        Alert.alert('Erreur', "Impossible de copier l'adresse");
       }
     }
   };
@@ -213,18 +230,24 @@ const CapiJerrScreen = ({ navigation }) => {
     try {
       // Validation côté frontend
       if (!recipientAddress || recipientAddress.trim() === '') {
-        Alert.alert('Erreur de validation', 'L\'adresse du destinataire est requise');
+        Alert.alert(
+          'Erreur de validation',
+          "L'adresse du destinataire est requise",
+        );
         return;
       }
-      
+
       if (!amount || parseFloat(amount) <= 0) {
-        Alert.alert('Erreur de validation', 'Le montant doit être supérieur à 0');
+        Alert.alert(
+          'Erreur de validation',
+          'Le montant doit être supérieur à 0',
+        );
         return;
       }
-      
+
       const result = await walletService.transferJerr({
         recipientPublicKey: recipientAddress,
-        amount: parseFloat(amount)
+        amount: parseFloat(amount),
       });
       Alert.alert('Succès', 'Transfert effectué avec succès');
       setShowTransferModal(false);
@@ -240,17 +263,19 @@ const CapiJerrScreen = ({ navigation }) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Charger les informations du portefeuille local
       const localWallet = walletService.getLocalWalletInfo();
-      
+
       // Charger les soldes consolidés pour le Wallet Principal
-      const consolidatedBalances = await walletService.getConsolidatedBalances().catch(() => ({
-        totalJerrBalance: 0,
-        totalSolBalance: 0,
-        totalValueEUR: 0
-      }));
-      
+      const consolidatedBalances = await walletService
+        .getConsolidatedBalances()
+        .catch(() => ({
+          totalJerrBalance: 0,
+          totalSolBalance: 0,
+          totalValueEUR: 0,
+        }));
+
       // Mettre à jour le wallet avec les soldes consolidés
       const updatedWallet = {
         ...localWallet,
@@ -259,31 +284,36 @@ const CapiJerrScreen = ({ navigation }) => {
         balanceUsd: consolidatedBalances.totalValueEUR,
         totalJerr: consolidatedBalances.totalJerrBalance,
         totalSol: consolidatedBalances.totalSolBalance,
-        totalValueEUR: consolidatedBalances.totalValueEUR
+        totalValueEUR: consolidatedBalances.totalValueEUR,
       };
-      
+
       setWallet(updatedWallet);
-      
+
       // Charger les données d'investissement réelles
       const [globalStats, allPlans, solanaData] = await Promise.all([
         investmentService.getGlobalStats().catch(() => ({})),
         investmentService.getAllPlans().catch(() => []),
-        solanaService.getAllWalletsBalances().catch(() => ({ totals: { jerr: 0, sol: 0 }, wallets: [] }))
+        solanaService
+          .getAllWalletsBalances()
+          .catch(() => ({ totals: { jerr: 0, sol: 0 }, wallets: [] })),
       ]);
 
       // Intégrer les données Solana dans les statistiques
       const totalJerrBalance = Number(solanaData?.totals?.jerr) || 0;
       const totalSolBalance = Number(solanaData?.totals?.sol) || 0;
-      const usdValue = solanaService.getEstimatedUSDValue(totalJerrBalance, totalSolBalance) || { total: 0 };
-      
+      const usdValue = solanaService.getEstimatedUSDValue(
+        totalJerrBalance,
+        totalSolBalance,
+      ) || { total: 0 };
+
       // Vérifier et sécuriser les données de globalStats
       const safeGlobalStats = {
         totalInvested: globalStats?.totalInvested || 0,
         totalReturn: globalStats?.totalReturn || 0,
         averageReturn: globalStats?.averageReturn || 0,
-        activePlans: globalStats?.activePlans || 0
+        activePlans: globalStats?.activePlans || 0,
       };
-      
+
       // Transformer les données pour les statistiques
       const transformedStats = [
         {
@@ -327,10 +357,24 @@ const CapiJerrScreen = ({ navigation }) => {
       // Transformer les données des plans
       const transformedPlans = (allPlans || []).map(plan => ({
         ...plan,
-        balance: typeof plan?.balance === 'number' ? plan.balance : parseFloat(plan?.balance) || 0,
-        yield: typeof plan?.yield === 'number' ? plan.yield : parseFloat(plan?.yield) || 0,
-        performance: typeof plan?.performance === 'number' ? plan.performance : parseFloat(plan?.performance) || 0,
-        trend: (plan?.performance || 0) > 0 ? 'up' : (plan?.performance || 0) < 0 ? 'down' : 'flat'
+        balance:
+          typeof plan?.balance === 'number'
+            ? plan.balance
+            : parseFloat(plan?.balance) || 0,
+        yield:
+          typeof plan?.yield === 'number'
+            ? plan.yield
+            : parseFloat(plan?.yield) || 0,
+        performance:
+          typeof plan?.performance === 'number'
+            ? plan.performance
+            : parseFloat(plan?.performance) || 0,
+        trend:
+          (plan?.performance || 0) > 0
+            ? 'up'
+            : (plan?.performance || 0) < 0
+            ? 'down'
+            : 'flat',
       }));
 
       setStats(transformedStats);
@@ -342,15 +386,14 @@ const CapiJerrScreen = ({ navigation }) => {
         loadWalletQR(),
         loadPriceHistory(),
         loadSecurityInfo(),
-        loadTransactionFees()
+        loadTransactionFees(),
       ]).catch(error => {
         console.warn('Erreur lors du chargement des données crypto:', error);
       });
-
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
       setError('Impossible de charger les données du portefeuille');
-      
+
       // Utiliser les données mockées en cas d'erreur
       setStats(mockStats);
       setPlans(mockPlans);
@@ -385,7 +428,7 @@ const CapiJerrScreen = ({ navigation }) => {
           duration: 2000,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     );
     glowAnimation.start();
 
@@ -393,7 +436,7 @@ const CapiJerrScreen = ({ navigation }) => {
   }, [glowAnim]);
 
   // TOUTES LES FONCTIONS APRÈS LES HOOKS
-  const animatePress = (callback) => {
+  const animatePress = callback => {
     Animated.sequence([
       Animated.timing(scaleAnim, {
         toValue: 0.95,
@@ -412,9 +455,9 @@ const CapiJerrScreen = ({ navigation }) => {
 
   const handleViewHistory = () => {
     animatePress(() => {
-      navigation.navigate('InvestmentHistory', { 
-        transactions: [], 
-        investmentService 
+      navigation.navigate('InvestmentHistory', {
+        transactions: [],
+        investmentService,
       });
     });
   };
@@ -429,78 +472,77 @@ const CapiJerrScreen = ({ navigation }) => {
     try {
       // Afficher un dialogue pour choisir le montant d'investissement
       Alert.prompt(
-        'Nouveau Plan d\'Investissement',
+        "Nouveau Plan d'Investissement",
         `Créer un ${activeTab}\nMontant à investir (JERR):`,
         [
           {
             text: 'Annuler',
-            style: 'cancel'
+            style: 'cancel',
           },
           {
             text: 'Créer',
-            onPress: async (amount) => {
+            onPress: async amount => {
               try {
                 const investmentAmount = parseFloat(amount);
                 if (isNaN(investmentAmount) || investmentAmount <= 0) {
                   Alert.alert('Erreur', 'Veuillez entrer un montant valide.');
                   return;
                 }
-                
+
                 const newPlan = await investmentService.createInvestmentPlan(
                   activeTab,
-                  investmentAmount
+                  investmentAmount,
                 );
-                
+
                 Alert.alert(
                   'Succès',
                   `Votre ${newPlan.name} a été créé avec succès !\nMontant investi: ${investmentAmount} JERR`,
-                  [{ text: 'OK', onPress: () => loadWalletData() }]
+                  [{ text: 'OK', onPress: () => loadWalletData() }],
                 );
               } catch (error) {
                 Alert.alert(
                   'Erreur',
-                  error.message || 'Impossible de créer le plan d\'investissement.',
-                  [{ text: 'OK' }]
+                  error.message ||
+                    "Impossible de créer le plan d'investissement.",
+                  [{ text: 'OK' }],
                 );
               }
-            }
-          }
+            },
+          },
         ],
         'plain-text',
-        '500'
+        '500',
       );
     } catch (error) {
-      Alert.alert(
-        'Erreur',
-        'Impossible de créer le plan d\'investissement.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Erreur', "Impossible de créer le plan d'investissement.", [
+        { text: 'OK' },
+      ]);
     }
   };
 
   const handleSimulateUpdate = async () => {
     try {
       setLoading(true);
-      
+
       // Simuler une mise à jour des performances
       const updatedPlans = await Promise.all(
-        plans.map(async (plan) => {
-          const updatedPlan = await investmentService.simulatePerformanceUpdate(plan.id);
+        plans.map(async plan => {
+          const updatedPlan = await investmentService.simulatePerformanceUpdate(
+            plan.id,
+          );
           return updatedPlan;
-        })
+        }),
       );
-      
+
       Alert.alert(
         'Simulation Terminée',
         `${updatedPlans.length} plans mis à jour avec de nouvelles performances.`,
-        [{ text: 'OK', onPress: () => loadWalletData() }]
+        [{ text: 'OK', onPress: () => loadWalletData() }],
       );
     } catch (error) {
-      Alert.alert(
-        'Erreur',
-        'Impossible de simuler les mises à jour.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Erreur', 'Impossible de simuler les mises à jour.', [
+        { text: 'OK' },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -510,105 +552,118 @@ const CapiJerrScreen = ({ navigation }) => {
     navigation.navigate('CreatePlan');
   };
 
-
-
   const handleAlimenter = () => {
     // Afficher la liste des plans pour choisir lequel alimenter
     if (plans.length === 0) {
       Alert.alert(
         'Aucun Plan',
-        'Vous devez d\'abord créer un plan d\'investissement.',
-        [{ text: 'OK' }]
+        "Vous devez d'abord créer un plan d'investissement.",
+        [{ text: 'OK' }],
       );
       return;
     }
-    
+
     const planOptions = plans.map(plan => ({
       text: `${plan.name} (${(Number(plan.balance) || 0).toFixed(2)} JERR)`,
-      onPress: () => showFundPlanDialog(plan)
+      onPress: () => showFundPlanDialog(plan),
     }));
-    
-    Alert.alert(
-      'Alimenter un Plan',
-      'Choisissez le plan à alimenter:',
-      [
-        ...planOptions,
-        { text: 'Annuler', style: 'cancel' }
-      ]
-    );
+
+    Alert.alert('Alimenter un Plan', 'Choisissez le plan à alimenter:', [
+      ...planOptions,
+      { text: 'Annuler', style: 'cancel' },
+    ]);
   };
 
-
-  
-  const showFundPlanDialog = (plan) => {
+  const showFundPlanDialog = plan => {
     Alert.prompt(
       'Alimenter le Plan',
-      `${plan.name}\nSolde actuel: ${(Number(plan.balance) || 0).toFixed(2)} JERR\n\nMontant à ajouter:`,
+      `${plan.name}\nSolde actuel: ${(Number(plan.balance) || 0).toFixed(
+        2,
+      )} JERR\n\nMontant à ajouter:`,
       [
         {
           text: 'Annuler',
-          style: 'cancel'
+          style: 'cancel',
         },
         {
           text: 'Alimenter',
-          onPress: async (amount) => {
+          onPress: async amount => {
             try {
               const fundAmount = parseFloat(amount);
               if (isNaN(fundAmount) || fundAmount <= 0) {
                 Alert.alert('Erreur', 'Veuillez entrer un montant valide.');
                 return;
               }
-              
+
               await investmentService.fundPlan(plan.id, fundAmount);
-              
+
               Alert.alert(
                 'Succès',
                 `${fundAmount} JERR ajoutés au ${plan.name}`,
-                [{ text: 'OK', onPress: () => loadWalletData() }]
+                [{ text: 'OK', onPress: () => loadWalletData() }],
               );
             } catch (error) {
               Alert.alert(
                 'Erreur',
-                error.message || 'Impossible d\'alimenter le plan.',
-                [{ text: 'OK' }]
+                error.message || "Impossible d'alimenter le plan.",
+                [{ text: 'OK' }],
               );
             }
-          }
-        }
+          },
+        },
       ],
       'plain-text',
-      '100'
+      '100',
     );
   };
 
-  const renderStatCard = (stat) => {
-    const getTrendColor = (trend) => {
+  const renderStatCard = stat => {
+    const getTrendColor = trend => {
       switch (trend) {
-        case 'up': return '#00f4b0';
-        case 'down': return '#ff6b6b';
-        default: return '#d7db3a';
+        case 'up':
+          return '#00f4b0';
+        case 'down':
+          return '#ff6b6b';
+        default:
+          return '#d7db3a';
       }
     };
 
     return (
       <View key={stat.id} style={styles.statCard}>
-        <BlurView blurAmount={15} blurType="light" style={styles.statCardContent}>
+        <BlurView
+          blurAmount={15}
+          blurType="light"
+          style={styles.statCardContent}
+        >
           <View style={styles.statHeader}>
-            <Feather name={stat.icon} size={14} color="rgba(255, 255, 255, 0.7)" />
+            <Feather
+              name={stat.icon}
+              size={14}
+              color="rgba(255, 255, 255, 0.7)"
+            />
           </View>
           <Text style={styles.statLabel} numberOfLines={2} ellipsizeMode="tail">
             {stat.label}
           </Text>
           <View style={styles.statValueContainer}>
             <View style={styles.statValueRow}>
-              <Text style={styles.statValue} numberOfLines={1} ellipsizeMode="tail">
+              <Text
+                style={styles.statValue}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 {stat.value}
               </Text>
               <Text style={styles.statUnit} numberOfLines={1}>
                 {stat.unit}
               </Text>
             </View>
-            <Text style={[styles.statChange, { color: getTrendColor(stat.trend) }]} numberOfLines={1} ellipsizeMode="tail">
+            <Text
+              style={[styles.statChange, { color: getTrendColor(stat.trend) }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
               {stat.change}
             </Text>
           </View>
@@ -630,61 +685,65 @@ const CapiJerrScreen = ({ navigation }) => {
         break;
     }
   };
-  
-  const showWithdrawDialog = (plan) => {
+
+  const showWithdrawDialog = plan => {
     Alert.prompt(
       'Retirer des Fonds',
-      `${plan.name}\nSolde disponible: ${(Number(plan.balance) || 0).toFixed(2)} JERR\n\nMontant à retirer:`,
+      `${plan.name}\nSolde disponible: ${(Number(plan.balance) || 0).toFixed(
+        2,
+      )} JERR\n\nMontant à retirer:`,
       [
         {
           text: 'Annuler',
-          style: 'cancel'
+          style: 'cancel',
         },
         {
           text: 'Retirer',
-          onPress: async (amount) => {
+          onPress: async amount => {
             try {
               const withdrawAmount = parseFloat(amount);
               if (isNaN(withdrawAmount) || withdrawAmount <= 0) {
                 Alert.alert('Erreur', 'Veuillez entrer un montant valide.');
                 return;
               }
-              
+
               if (withdrawAmount > plan.balance) {
                 Alert.alert('Erreur', 'Montant supérieur au solde disponible.');
                 return;
               }
-              
+
               await investmentService.withdrawFromPlan(plan.id, withdrawAmount);
-              
+
               Alert.alert(
                 'Succès',
                 `${withdrawAmount} JERR retirés du ${plan.name}`,
-                [{ text: 'OK', onPress: () => loadWalletData() }]
+                [{ text: 'OK', onPress: () => loadWalletData() }],
               );
             } catch (error) {
               Alert.alert(
                 'Erreur',
                 error.message || 'Impossible de retirer les fonds.',
-                [{ text: 'OK' }]
+                [{ text: 'OK' }],
               );
             }
-          }
-        }
+          },
+        },
       ],
       'plain-text',
-      '100'
+      '100',
     );
   };
-  
-  const showDeleteConfirmation = (plan) => {
+
+  const showDeleteConfirmation = plan => {
     Alert.alert(
       'Supprimer le Plan',
-      `Êtes-vous sûr de vouloir supprimer "${plan.name}" ?\n\nSolde actuel: ${(Number(plan.balance) || 0).toFixed(2)} JERR\n\nCette action est irréversible.`,
+      `Êtes-vous sûr de vouloir supprimer "${plan.name}" ?\n\nSolde actuel: ${(
+        Number(plan.balance) || 0
+      ).toFixed(2)} JERR\n\nCette action est irréversible.`,
       [
         {
           text: 'Annuler',
-          style: 'cancel'
+          style: 'cancel',
         },
         {
           text: 'Supprimer',
@@ -692,45 +751,51 @@ const CapiJerrScreen = ({ navigation }) => {
           onPress: async () => {
             try {
               await investmentService.deletePlan(plan.id);
-              
+
               Alert.alert(
                 'Plan Supprimé',
                 `Le plan "${plan.name}" a été supprimé avec succès.`,
-                [{ text: 'OK', onPress: () => loadWalletData() }]
+                [{ text: 'OK', onPress: () => loadWalletData() }],
               );
             } catch (error) {
               Alert.alert(
                 'Erreur',
                 error.message || 'Impossible de supprimer le plan.',
-                [{ text: 'OK' }]
+                [{ text: 'OK' }],
               );
             }
-          }
-        }
-      ]
+          },
+        },
+      ],
     );
   };
 
-  const renderPlanCard = (plan) => {
-    const getTrendColor = (trend) => {
+  const renderPlanCard = plan => {
+    const getTrendColor = trend => {
       switch (trend) {
-        case 'up': return '#00f4b0';
-        case 'down': return '#ff6b6b';
-        default: return '#d7db3a';
+        case 'up':
+          return '#00f4b0';
+        case 'down':
+          return '#ff6b6b';
+        default:
+          return '#d7db3a';
       }
     };
 
-    const getTrendIcon = (trend) => {
+    const getTrendIcon = trend => {
       switch (trend) {
-        case 'up': return 'trending-up';
-        case 'down': return 'trending-down';
-        default: return 'minus';
+        case 'up':
+          return 'trending-up';
+        case 'down':
+          return 'trending-down';
+        default:
+          return 'minus';
       }
     };
 
     return (
-      <TouchableOpacity 
-        key={plan.id} 
+      <TouchableOpacity
+        key={plan.id}
         style={styles.planCard}
         onPress={() => handlePlanAction(plan, 'details')}
         activeOpacity={0.8}
@@ -739,7 +804,11 @@ const CapiJerrScreen = ({ navigation }) => {
           colors={['rgba(215, 219, 58, 0.1)', 'rgba(0, 244, 176, 0.05)']}
           style={styles.planCardGradient}
         >
-          <BlurView blurAmount={20} blurType="light" style={styles.planCardBlur}>
+          <BlurView
+            blurAmount={20}
+            blurType="light"
+            style={styles.planCardBlur}
+          >
             <View style={styles.planCardContent}>
               {/* Header avec icône premium */}
               <View style={styles.planCardHeader}>
@@ -754,91 +823,103 @@ const CapiJerrScreen = ({ navigation }) => {
                   <Text style={styles.planRisk}>Risque Faible</Text>
                 </View>
               </View>
-            <View style={styles.planHeader}>
-              <Text style={styles.planName}>{plan.name}</Text>
-              <View style={styles.planActions}>
-                <View style={styles.planTrend}>
-                  <Feather 
-                    name={getTrendIcon(plan.trend)} 
-                    size={16} 
-                    color={getTrendColor(plan.trend)} 
+              <View style={styles.planHeader}>
+                <Text style={styles.planName}>{plan.name}</Text>
+                <View style={styles.planActions}>
+                  <View style={styles.planTrend}>
+                    <Feather
+                      name={getTrendIcon(plan.trend)}
+                      size={16}
+                      color={getTrendColor(plan.trend)}
+                    />
+                  </View>
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => handlePlanAction(plan, 'withdraw')}
+                  >
+                    <Feather name="minus-circle" size={20} color="#ff6b6b" />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => handlePlanAction(plan, 'delete')}
+                  >
+                    <Feather name="trash-2" size={20} color="#ff6b6b" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={styles.planBalance}>
+                <Text style={styles.planBalanceLabel}>Solde actuel</Text>
+                <Text style={styles.planBalanceValue}>
+                  {typeof plan.balance === 'number'
+                    ? `${(Number(plan.balance) || 0).toFixed(2)} JERR`
+                    : plan.balance}
+                </Text>
+              </View>
+
+              <View style={styles.planYield}>
+                <Text style={styles.planYieldLabel}>Performance</Text>
+                <Text
+                  style={[
+                    styles.planYieldValue,
+                    { color: plan.performance >= 0 ? '#00f4b0' : '#ff6b6b' },
+                  ]}
+                >
+                  {plan.performance >= 0 ? '+' : ''}
+                  {(Number(plan.performance) || 0).toFixed(1)}%
+                </Text>
+              </View>
+
+              <View style={styles.planYield}>
+                <Text style={styles.planYieldLabel}>Valeur Actuelle</Text>
+                <Text style={styles.planBalanceValue}>
+                  {plan.currentValue
+                    ? (Number(plan.currentValue) || 0).toFixed(2)
+                    : (Number(plan.balance) || 0).toFixed(2)}{' '}
+                  JERR
+                </Text>
+              </View>
+
+              <View style={styles.planAllocation}>
+                <Text style={styles.allocationLabel}>Allocation</Text>
+                <View style={styles.allocationBar}>
+                  <View
+                    style={[
+                      styles.allocationSegment,
+                      styles.stocksSegment,
+                      { flex: plan.allocation.stocks },
+                    ]}
+                  />
+                  <View
+                    style={[
+                      styles.allocationSegment,
+                      styles.bondsSegment,
+                      { flex: plan.allocation.bonds },
+                    ]}
                   />
                 </View>
-                <TouchableOpacity 
-                  style={styles.actionButton}
-                  onPress={() => handlePlanAction(plan, 'withdraw')}
-                >
-                  <Feather name="minus-circle" size={20} color="#ff6b6b" />
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={styles.actionButton}
-                  onPress={() => handlePlanAction(plan, 'delete')}
-                >
-                  <Feather name="trash-2" size={20} color="#ff6b6b" />
-                </TouchableOpacity>
-              </View>
-            </View>
-            
-            <View style={styles.planBalance}>
-              <Text style={styles.planBalanceLabel}>Solde actuel</Text>
-              <Text style={styles.planBalanceValue}>
-                {typeof plan.balance === 'number' 
-                  ? `${(Number(plan.balance) || 0).toFixed(2)} JERR`
-                  : plan.balance
-                }
-              </Text>
-            </View>
-            
-            <View style={styles.planYield}>
-              <Text style={styles.planYieldLabel}>Performance</Text>
-              <Text style={[
-                styles.planYieldValue,
-                { color: plan.performance >= 0 ? '#00f4b0' : '#ff6b6b' }
-              ]}>
-                {plan.performance >= 0 ? '+' : ''}{(Number(plan.performance) || 0).toFixed(1)}%
-              </Text>
-            </View>
-            
-            <View style={styles.planYield}>
-              <Text style={styles.planYieldLabel}>Valeur Actuelle</Text>
-              <Text style={styles.planBalanceValue}>
-                {plan.currentValue ? (Number(plan.currentValue) || 0).toFixed(2) : (Number(plan.balance) || 0).toFixed(2)} JERR
-              </Text>
-            </View>
-            
-            <View style={styles.planAllocation}>
-              <Text style={styles.allocationLabel}>Allocation</Text>
-              <View style={styles.allocationBar}>
-                <View 
-                  style={[
-                    styles.allocationSegment, 
-                    styles.stocksSegment,
-                    { flex: plan.allocation.stocks }
-                  ]} 
-                />
-                <View 
-                  style={[
-                    styles.allocationSegment, 
-                    styles.bondsSegment,
-                    { flex: plan.allocation.bonds }
-                  ]} 
-                />
-              </View>
-              <View style={styles.allocationLegend}>
-                <View style={styles.legendItem}>
-                  <View style={[styles.legendDot, styles.stocksDot]} />
-                  <Text style={styles.legendText}>Actions {plan.allocation.stocks}%</Text>
-                </View>
-                <View style={styles.legendItem}>
-                  <View style={[styles.legendDot, styles.bondsDot]} />
-                  <Text style={styles.legendText}>Obligations {plan.allocation.bonds}%</Text>
+                <View style={styles.allocationLegend}>
+                  <View style={styles.legendItem}>
+                    <View style={[styles.legendDot, styles.stocksDot]} />
+                    <Text style={styles.legendText}>
+                      Actions {plan.allocation.stocks}%
+                    </Text>
+                  </View>
+                  <View style={styles.legendItem}>
+                    <View style={[styles.legendDot, styles.bondsDot]} />
+                    <Text style={styles.legendText}>
+                      Obligations {plan.allocation.bonds}%
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
-            
-            <Text style={styles.planLastUpdate}>
-              Créé le {new Date(plan.createdAt || plan.lastUpdate).toLocaleDateString('fr-FR')}
-            </Text>
+
+              <Text style={styles.planLastUpdate}>
+                Créé le{' '}
+                {new Date(plan.createdAt || plan.lastUpdate).toLocaleDateString(
+                  'fr-FR',
+                )}
+              </Text>
             </View>
           </BlurView>
         </LinearGradient>
@@ -871,7 +952,9 @@ const CapiJerrScreen = ({ navigation }) => {
         />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#d7db3a" />
-          <Text style={styles.loadingText}>Chargement de votre portefeuille...</Text>
+          <Text style={styles.loadingText}>
+            Chargement de votre portefeuille...
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -883,33 +966,37 @@ const CapiJerrScreen = ({ navigation }) => {
         colors={['#7a006e', '#006e8e']}
         style={styles.backgroundGradient}
       />
-      
+
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top }]}>
-        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+        <StatusBar
+          barStyle="light-content"
+          backgroundColor="transparent"
+          translucent
+        />
         <View style={styles.headerContent}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
             <Feather name="arrow-left" size={24} color="white" />
           </TouchableOpacity>
-          
+
           <View style={styles.headerTitleContainer}>
-            <Animated.Text 
+            <Animated.Text
               style={[
                 styles.headerTitle,
                 {
-                  transform: [{ scale: glowAnim }]
-                }
+                  transform: [{ scale: glowAnim }],
+                },
               ]}
             >
               CapiJerr
             </Animated.Text>
             {error && <Text style={styles.errorText}>{error}</Text>}
           </View>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={styles.avatarButton}
             onPress={() => navigation.navigate('CapiJerrProfile')}
           >
@@ -925,35 +1012,43 @@ const CapiJerrScreen = ({ navigation }) => {
 
       {/* Tabs */}
       <View style={styles.tabContainer}>
-        <ScrollView 
-          horizontal 
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.tabScrollContent}
         >
-          {['Plan 20-80'].map((tab) => (
+          {['Plan 20-80'].map(tab => (
             <TouchableOpacity
               key={tab}
               style={[
                 styles.tab,
                 activeTab === tab ? styles.activeTab : styles.inactiveTab,
-                styles.singleTabContainer
+                styles.singleTabContainer,
               ]}
               onPress={() => setActiveTab(tab)}
             >
               <LinearGradient
-                colors={activeTab === tab ? ['#d7db3a', '#00f4b0'] : ['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)']}
+                colors={
+                  activeTab === tab
+                    ? ['#d7db3a', '#00f4b0']
+                    : ['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)']
+                }
                 style={styles.tabGradient}
               >
-                <Feather 
-                  name="shield" 
-                  size={16} 
-                  color={activeTab === tab ? '#000' : 'white'} 
+                <Feather
+                  name="shield"
+                  size={16}
+                  color={activeTab === tab ? '#000' : 'white'}
                   style={styles.tabIcon}
                 />
-                <Text style={[
-                  styles.tabText,
-                  activeTab === tab ? styles.activeTabText : styles.inactiveTabText
-                ]}>
+                <Text
+                  style={[
+                    styles.tabText,
+                    activeTab === tab
+                      ? styles.activeTabText
+                      : styles.inactiveTabText,
+                  ]}
+                >
                   {tab}
                 </Text>
                 <View style={styles.tabBadge}>
@@ -966,7 +1061,7 @@ const CapiJerrScreen = ({ navigation }) => {
       </View>
 
       {/* Content */}
-      <ScrollView 
+      <ScrollView
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
         refreshControl={
@@ -985,16 +1080,14 @@ const CapiJerrScreen = ({ navigation }) => {
         >
           <Text style={styles.promoTitle}>Investissez intelligemment</Text>
           <Text style={styles.promoSubtitle}>
-            Diversifiez votre portefeuille avec nos plans d'investissement automatisés
+            Diversifiez votre portefeuille avec nos plans d'investissement
+            automatisés
           </Text>
         </LinearGradient>
 
         {/* Primary CTA */}
-        <Animated.View 
-          style={[
-            styles.primaryCTA,
-            { transform: [{ scale: scaleAnim }] }
-          ]}
+        <Animated.View
+          style={[styles.primaryCTA, { transform: [{ scale: scaleAnim }] }]}
         >
           <TouchableOpacity onPress={handleCreatePlan}>
             <LinearGradient
@@ -1008,11 +1101,8 @@ const CapiJerrScreen = ({ navigation }) => {
         </Animated.View>
 
         {/* Secondary CTA - Alimenter */}
-        <Animated.View 
-          style={[
-            styles.primaryCTA,
-            { transform: [{ scale: scaleAnim }] }
-          ]}
+        <Animated.View
+          style={[styles.primaryCTA, { transform: [{ scale: scaleAnim }] }]}
         >
           <TouchableOpacity onPress={handleAlimenter}>
             <LinearGradient
@@ -1027,29 +1117,57 @@ const CapiJerrScreen = ({ navigation }) => {
 
         {/* Nouvelles actions crypto */}
         <View style={styles.cryptoActionsContainer}>
-          <TouchableOpacity style={styles.cryptoAction} onPress={() => setShowQRModal(true)}>
-            <BlurView blurAmount={20} blurType="light" style={styles.cryptoActionBlur}>
+          <TouchableOpacity
+            style={styles.cryptoAction}
+            onPress={() => setShowQRModal(true)}
+          >
+            <BlurView
+              blurAmount={20}
+              blurType="light"
+              style={styles.cryptoActionBlur}
+            >
               <MaterialCommunityIcons name="qrcode" size={20} color="#00f4b0" />
               <Text style={styles.cryptoActionText}>Recevoir</Text>
             </BlurView>
           </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.cryptoAction} onPress={() => setShowTransferModal(true)}>
-            <BlurView blurAmount={20} blurType="light" style={styles.cryptoActionBlur}>
+
+          <TouchableOpacity
+            style={styles.cryptoAction}
+            onPress={() => setShowTransferModal(true)}
+          >
+            <BlurView
+              blurAmount={20}
+              blurType="light"
+              style={styles.cryptoActionBlur}
+            >
               <Feather name="send" size={20} color="#d7db3a" />
               <Text style={styles.cryptoActionText}>Envoyer</Text>
             </BlurView>
           </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.cryptoAction} onPress={copyWalletAddress}>
-            <BlurView blurAmount={20} blurType="light" style={styles.cryptoActionBlur}>
+
+          <TouchableOpacity
+            style={styles.cryptoAction}
+            onPress={copyWalletAddress}
+          >
+            <BlurView
+              blurAmount={20}
+              blurType="light"
+              style={styles.cryptoActionBlur}
+            >
               <Feather name="copy" size={20} color="white" />
               <Text style={styles.cryptoActionText}>Copier</Text>
             </BlurView>
           </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.cryptoAction} onPress={() => setShowSecurityModal(true)}>
-            <BlurView blurAmount={20} blurType="light" style={styles.cryptoActionBlur}>
+
+          <TouchableOpacity
+            style={styles.cryptoAction}
+            onPress={() => setShowSecurityModal(true)}
+          >
+            <BlurView
+              blurAmount={20}
+              blurType="light"
+              style={styles.cryptoActionBlur}
+            >
               <Feather name="shield" size={20} color="#ff6b35" />
               <Text style={styles.cryptoActionText}>Sécurité</Text>
             </BlurView>
@@ -1061,21 +1179,25 @@ const CapiJerrScreen = ({ navigation }) => {
           <View style={styles.solanaSection}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Portefeuille Crypto</Text>
-              <TouchableOpacity 
-                style={styles.syncButton} 
+              <TouchableOpacity
+                style={styles.syncButton}
                 onPress={syncSolanaBalance}
                 disabled={syncingBalance}
               >
-                <Feather 
-                  name={syncingBalance ? "loader" : "refresh-cw"} 
-                  size={16} 
-                  color="#00f4b0" 
+                <Feather
+                  name={syncingBalance ? 'loader' : 'refresh-cw'}
+                  size={16}
+                  color="#00f4b0"
                 />
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles.walletCard}>
-              <BlurView blurAmount={20} blurType="light" style={styles.walletCardBlur}>
+              <BlurView
+                blurAmount={20}
+                blurType="light"
+                style={styles.walletCardBlur}
+              >
                 <View style={styles.walletCardContent}>
                   <View style={styles.walletHeader}>
                     <Text style={styles.walletName}>Wallet Principal</Text>
@@ -1084,33 +1206,42 @@ const CapiJerrScreen = ({ navigation }) => {
                       <Text style={styles.statusText}>Actif</Text>
                     </View>
                   </View>
-                  
+
                   <View style={styles.walletAddress}>
                     <Text style={styles.addressLabel}>Adresse publique</Text>
                     <TouchableOpacity onPress={copyWalletAddress}>
-                      <Text style={styles.addressValue} numberOfLines={1} ellipsizeMode="middle">
-                        {wallet?.solana?.publicKey || wallet?.publicKey || 'Non disponible'}
+                      <Text
+                        style={styles.addressValue}
+                        numberOfLines={1}
+                        ellipsizeMode="middle"
+                      >
+                        {wallet?.solana?.publicKey ||
+                          wallet?.publicKey ||
+                          'Non disponible'}
                       </Text>
                     </TouchableOpacity>
                   </View>
-                  
+
                   <View style={styles.balanceRow}>
                     <View style={styles.balanceItem}>
                       <Text style={styles.balanceLabel}>JERR</Text>
                       <Text style={styles.balanceValue}>
-                        {user?.email === 'cydjerr.c@gmail.com' 
-                          ? (9000000000000).toLocaleString('fr-FR', { maximumFractionDigits: 0 })
-                          : (Number(wallet.totalJerr) || 0).toFixed(2)
-                        }
+                        {user?.email === 'cydjerr.c@gmail.com'
+                          ? (9000000000000).toLocaleString('fr-FR', {
+                              maximumFractionDigits: 0,
+                            })
+                          : (Number(wallet.totalJerr) || 0).toFixed(2)}
                       </Text>
                       <Text style={styles.balanceUsd}>
-                        €{user?.email === 'cydjerr.c@gmail.com' 
-                          ? (9000000000000 * 0.01).toLocaleString('fr-FR', { maximumFractionDigits: 2 })
-                          : (Number(wallet.totalJerr) * 0.01 || 0).toFixed(2)
-                        }
+                        €
+                        {user?.email === 'cydjerr.c@gmail.com'
+                          ? (9000000000000 * 0.01).toLocaleString('fr-FR', {
+                              maximumFractionDigits: 2,
+                            })
+                          : (Number(wallet.totalJerr) * 0.01 || 0).toFixed(2)}
                       </Text>
                     </View>
-                    
+
                     <View style={styles.balanceItem}>
                       <Text style={styles.balanceLabel}>SOL</Text>
                       <Text style={styles.balanceValue}>
@@ -1120,14 +1251,19 @@ const CapiJerrScreen = ({ navigation }) => {
                         €{(Number(wallet.totalSol) * 150 || 0).toFixed(2)}
                       </Text>
                     </View>
-                    
+
                     <View style={styles.balanceItem}>
                       <Text style={styles.balanceLabel}>Total EUR</Text>
                       <Text style={styles.balanceValue}>
-                        €{user?.email === 'cydjerr.c@gmail.com' 
-                          ? (9000000000000 * 0.01 + (Number(wallet.totalSol) * 150 || 0)).toLocaleString('fr-FR', { maximumFractionDigits: 2 })
-                          : (Number(wallet.totalValueEUR) || 0).toFixed(2)
-                        }
+                        €
+                        {user?.email === 'cydjerr.c@gmail.com'
+                          ? (
+                              9000000000000 * 0.01 +
+                              (Number(wallet.totalSol) * 150 || 0)
+                            ).toLocaleString('fr-FR', {
+                              maximumFractionDigits: 2,
+                            })
+                          : (Number(wallet.totalValueEUR) || 0).toFixed(2)}
                       </Text>
                       {transactionFees && (
                         <Text style={styles.feesText}>
@@ -1136,18 +1272,30 @@ const CapiJerrScreen = ({ navigation }) => {
                       )}
                     </View>
                   </View>
-                  
+
                   {/* Historique des prix JERR */}
                   <View style={styles.priceHistorySection}>
                     <Text style={styles.priceHistoryTitle}>Prix JERR (7j)</Text>
                     <View style={styles.priceHistoryContainer}>
                       <Text style={styles.currentPrice}>
-                        €{priceHistory?.current ? (priceHistory.current * 0.01).toFixed(4) : '0.0100'}
+                        €
+                        {priceHistory?.current
+                          ? (priceHistory.current * 0.01).toFixed(4)
+                          : '0.0100'}
                       </Text>
-                      <Text style={[styles.priceChange, {
-                        color: (priceHistory?.change24h || 0) >= 0 ? '#00f4b0' : '#ff6b35'
-                      }]}>
-                        {(priceHistory?.change24h || 0) >= 0 ? '+' : ''}{(priceHistory?.change24h || 0).toFixed(2)}%
+                      <Text
+                        style={[
+                          styles.priceChange,
+                          {
+                            color:
+                              (priceHistory?.change24h || 0) >= 0
+                                ? '#00f4b0'
+                                : '#ff6b35',
+                          },
+                        ]}
+                      >
+                        {(priceHistory?.change24h || 0) >= 0 ? '+' : ''}
+                        {(priceHistory?.change24h || 0).toFixed(2)}%
                       </Text>
                     </View>
                   </View>
@@ -1160,9 +1308,7 @@ const CapiJerrScreen = ({ navigation }) => {
         {/* Stats Section */}
         <View style={styles.statsSection}>
           <Text style={styles.sectionTitle}>Statistiques</Text>
-          <View style={styles.statsGrid}>
-            {stats.map(renderStatCard)}
-          </View>
+          <View style={styles.statsGrid}>{stats.map(renderStatCard)}</View>
         </View>
 
         {/* Solana Wallets Section */}
@@ -1171,48 +1317,62 @@ const CapiJerrScreen = ({ navigation }) => {
             <Text style={styles.sectionTitle}>Wallets Solana</Text>
             {solanaBalances.wallets.map((wallet, index) => (
               <View key={index} style={styles.walletCard}>
-                <BlurView blurAmount={15} blurType="light" style={styles.walletCardBlur}>
+                <BlurView
+                  blurAmount={15}
+                  blurType="light"
+                  style={styles.walletCardBlur}
+                >
                   <View style={styles.walletCardContent}>
                     <View style={styles.walletHeader}>
                       <Text style={styles.walletName}>
-                        {user?.email === 'cydjerr.c@gmail.com' && wallet.wallet === 'MNT' 
-                          ? 'MNT Wallet (Réel)' 
-                          : user?.email === 'cydjerr.c@gmail.com' && wallet.wallet === 'BOSS' 
-                          ? 'BOSS Wallet (Réel)' 
-                          : `${wallet.wallet} Wallet`
-                        }
+                        {user?.email === 'cydjerr.c@gmail.com' &&
+                        wallet.wallet === 'MNT'
+                          ? 'MNT Wallet (Réel)'
+                          : user?.email === 'cydjerr.c@gmail.com' &&
+                            wallet.wallet === 'BOSS'
+                          ? 'BOSS Wallet (Réel)'
+                          : `${wallet.wallet} Wallet`}
                       </Text>
                       <View style={styles.walletStatus}>
                         <View style={styles.statusDot} />
                         <Text style={styles.statusText}>Actif</Text>
                       </View>
                     </View>
-                    
+
                     <View style={styles.walletAddress}>
                       <Text style={styles.addressLabel}>Adresse:</Text>
                       <Text style={styles.addressValue}>
-                        {user?.email === 'cydjerr.c@gmail.com' && wallet.wallet === 'MNT' 
+                        {user?.email === 'cydjerr.c@gmail.com' &&
+                        wallet.wallet === 'MNT'
                           ? 'mntjcoBM3xFuhYavwJ2RAPwVbHuRg4p3TnzmXVjnhwn'
-                          : user?.email === 'cydjerr.c@gmail.com' && wallet.wallet === 'BOSS' 
+                          : user?.email === 'cydjerr.c@gmail.com' &&
+                            wallet.wallet === 'BOSS'
                           ? 'bosM6zBegCdA2RoegdDC8GTvFn1n3MWcYjANUHbbV1L'
-                          : `${wallet.address.substring(0, 8)}...${wallet.address.substring(wallet.address.length - 8)}`
-                        }
+                          : `${wallet.address.substring(
+                              0,
+                              8,
+                            )}...${wallet.address.substring(
+                              wallet.address.length - 8,
+                            )}`}
                       </Text>
                     </View>
-                    
+
                     <View style={styles.balanceRow}>
                       <View style={styles.balanceItem}>
                         <Text style={styles.balanceLabel}>JERR</Text>
                         <Text style={styles.balanceValue}>
-                          {user?.email === 'cydjerr.c@gmail.com' 
-                            ? (4500000000000).toLocaleString('fr-FR', { maximumFractionDigits: 0 })
-                            : (Number(wallet.jerr) || 0).toFixed(2)
-                          }
+                          {user?.email === 'cydjerr.c@gmail.com'
+                            ? (4500000000000).toLocaleString('fr-FR', {
+                                maximumFractionDigits: 0,
+                              })
+                            : (Number(wallet.jerr) || 0).toFixed(2)}
                         </Text>
                       </View>
                       <View style={styles.balanceItem}>
                         <Text style={styles.balanceLabel}>SOL</Text>
-                        <Text style={styles.balanceValue}>{(Number(wallet.sol) || 0).toFixed(4)}</Text>
+                        <Text style={styles.balanceValue}>
+                          {(Number(wallet.sol) || 0).toFixed(4)}
+                        </Text>
                       </View>
                     </View>
                   </View>
@@ -1238,34 +1398,45 @@ const CapiJerrScreen = ({ navigation }) => {
         onRequestClose={() => setShowQRModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <BlurView blurAmount={20} blurType="light" style={styles.modalContent}>
+          <BlurView
+            blurAmount={20}
+            blurType="light"
+            style={styles.modalContent}
+          >
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Recevoir JERR</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.closeButton}
                 onPress={() => setShowQRModal(false)}
               >
                 <Feather name="x" size={24} color="white" />
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles.modalBody}>
               {walletQR ? (
                 <View style={styles.qrContainer}>
                   <View style={styles.qrCode}>
-                    <MaterialCommunityIcons name="qrcode" size={120} color="#00f4b0" />
+                    <MaterialCommunityIcons
+                      name="qrcode"
+                      size={120}
+                      color="#00f4b0"
+                    />
                   </View>
-                  
+
                   <View style={styles.addressContainer}>
                     <Text style={styles.addressText} numberOfLines={1}>
                       {wallet?.solana?.publicKey || 'Adresse non disponible'}
                     </Text>
                   </View>
-                  
-                  <TouchableOpacity style={styles.copyButton} onPress={copyWalletAddress}>
+
+                  <TouchableOpacity
+                    style={styles.copyButton}
+                    onPress={copyWalletAddress}
+                  >
                     <Text style={styles.copyButtonText}>Copier l'adresse</Text>
                   </TouchableOpacity>
-                  
+
                   <Text style={styles.qrInstructions}>
                     Partagez cette adresse ou ce QR code pour recevoir des JERR
                   </Text>
@@ -1273,7 +1444,9 @@ const CapiJerrScreen = ({ navigation }) => {
               ) : (
                 <View style={styles.loadingContainer}>
                   <ActivityIndicator size="large" color="#00f4b0" />
-                  <Text style={styles.loadingText}>Génération du QR code...</Text>
+                  <Text style={styles.loadingText}>
+                    Génération du QR code...
+                  </Text>
                 </View>
               )}
             </View>
@@ -1289,17 +1462,21 @@ const CapiJerrScreen = ({ navigation }) => {
         onRequestClose={() => setShowTransferModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <BlurView blurAmount={20} blurType="light" style={styles.modalContent}>
+          <BlurView
+            blurAmount={20}
+            blurType="light"
+            style={styles.modalContent}
+          >
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Envoyer JERR</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.closeButton}
                 onPress={() => setShowTransferModal(false)}
               >
                 <Feather name="x" size={24} color="white" />
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles.modalBody}>
               <View style={styles.transferForm}>
                 <View>
@@ -1312,7 +1489,7 @@ const CapiJerrScreen = ({ navigation }) => {
                     onChangeText={setTransferAddress}
                   />
                 </View>
-                
+
                 <View>
                   <Text style={styles.formLabel}>Montant JERR</Text>
                   <TextInput
@@ -1324,21 +1501,23 @@ const CapiJerrScreen = ({ navigation }) => {
                     onChangeText={setTransferAmount}
                   />
                 </View>
-                
+
                 <Text style={styles.feesInfo}>
                   Frais estimés: {transactionFees?.estimated || '0.001'} SOL
                 </Text>
-                
+
                 <View style={styles.formButtons}>
-                  <TouchableOpacity 
-                    style={styles.cancelButton} 
+                  <TouchableOpacity
+                    style={styles.cancelButton}
                     onPress={() => setShowTransferModal(false)}
                   >
                     <Text style={styles.cancelButtonText}>Annuler</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.sendButton}
-                    onPress={() => handleTransferJerr(transferAddress, transferAmount)}
+                    onPress={() =>
+                      handleTransferJerr(transferAddress, transferAmount)
+                    }
                   >
                     <Text style={styles.sendButtonText}>Envoyer</Text>
                   </TouchableOpacity>
@@ -1357,38 +1536,48 @@ const CapiJerrScreen = ({ navigation }) => {
         onRequestClose={() => setShowSecurityModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <BlurView blurAmount={20} blurType="light" style={styles.modalContent}>
+          <BlurView
+            blurAmount={20}
+            blurType="light"
+            style={styles.modalContent}
+          >
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Sécurité du Portefeuille</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.closeButton}
                 onPress={() => setShowSecurityModal(false)}
               >
                 <Feather name="x" size={24} color="white" />
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles.modalBody}>
               {securityInfo ? (
                 <View style={styles.securitySettings}>
                   <View style={styles.securityItem}>
-                    <Text style={styles.securityLabel}>Authentification biométrique</Text>
+                    <Text style={styles.securityLabel}>
+                      Authentification biométrique
+                    </Text>
                     <TouchableOpacity style={styles.securityToggle}>
                       <Text style={styles.securityToggleText}>
                         {securityInfo.biometricEnabled ? 'Activé' : 'Désactivé'}
                       </Text>
                     </TouchableOpacity>
                   </View>
-                  
+
                   <View style={styles.securityItem}>
-                    <Text style={styles.securityLabel}>Phrase de récupération</Text>
+                    <Text style={styles.securityLabel}>
+                      Phrase de récupération
+                    </Text>
                     <TouchableOpacity style={styles.securityButton}>
                       <Text style={styles.securityButtonText}>Sauvegarder</Text>
                     </TouchableOpacity>
                   </View>
-                  
+
                   <View style={styles.securityItem}>
-                    <Text style={styles.securityLabel}>Limite de transaction</Text>
+                    <Text style={styles.securityLabel}>
+                      Limite de transaction
+                    </Text>
                     <TextInput
                       style={styles.securityInput}
                       placeholder="1000 JERR"
@@ -1401,7 +1590,9 @@ const CapiJerrScreen = ({ navigation }) => {
               ) : (
                 <View style={styles.loadingContainer}>
                   <ActivityIndicator size="large" color="#00f4b0" />
-                  <Text style={styles.loadingText}>Chargement des paramètres...</Text>
+                  <Text style={styles.loadingText}>
+                    Chargement des paramètres...
+                  </Text>
                 </View>
               )}
             </View>

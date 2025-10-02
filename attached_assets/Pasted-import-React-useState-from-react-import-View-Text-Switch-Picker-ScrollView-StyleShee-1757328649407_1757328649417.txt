@@ -1,0 +1,130 @@
+import React, { useState } from 'react';
+import { View, Text, Switch, Picker, ScrollView, StyleSheet } from 'react-native';
+
+const ProfileSettings = () => {
+  const [displayNameOption, setDisplayNameOption] = useState('real_name');
+  const [profileLikable, setProfileLikable] = useState(true);
+  const [hideBirthdayYear, setHideBirthdayYear] = useState(false);
+  const [profileVisibility, setProfileVisibility] = useState('10');
+  const [profilePostPermission, setProfilePostPermission] = useState('20');
+  const [hideOnlineStatus, setHideOnlineStatus] = useState(false);
+  const [timezone, setTimezone] = useState('0');
+  const [theme, setTheme] = useState('new_preset');
+  const [chatEnabled, setChatEnabled] = useState(true);
+  const [chatMinimized, setChatMinimized] = useState(false);
+  const [chatFriendsOnly, setChatFriendsOnly] = useState(true);
+
+  return (
+    <ScrollView style={styles.container}>
+      
+      {/* Profile Section */}
+      <Text style={styles.sectionTitle}>Profile</Text>
+      
+      <Text style={styles.label}>Display my name as</Text>
+      <Picker
+        selectedValue={displayNameOption}
+        onValueChange={setDisplayNameOption}
+        style={styles.picker}
+      >
+        <Picker.Item label="Full name: Ashley Smith" value="real_name" />
+        <Picker.Item label="First name: Ashley" value="real_name_first" />
+        <Picker.Item label="First name + last name initial: Ashley S." value="real_name_first_last_initial" />
+        <Picker.Item label="Username: demo" value="username" />
+      </Picker>
+
+      <View style={styles.switchContainer}>
+        <Text>Allow others to "like" my profile</Text>
+        <Switch value={profileLikable} onValueChange={setProfileLikable} />
+      </View>
+
+      <View style={styles.switchContainer}>
+        <Text>Hide my birthday year</Text>
+        <Switch value={hideBirthdayYear} onValueChange={setHideBirthdayYear} />
+      </View>
+
+      <Text style={styles.label}>Who can see my profile</Text>
+      <Picker
+        selectedValue={profileVisibility}
+        onValueChange={setProfileVisibility}
+        style={styles.picker}
+      >
+        <Picker.Item label="Public" value="10" />
+        <Picker.Item label="Site Members" value="20" />
+      </Picker>
+
+      <Text style={styles.label}>Who can post on my profile</Text>
+      <Picker
+        selectedValue={profilePostPermission}
+        onValueChange={setProfilePostPermission}
+        style={styles.picker}
+      >
+        <Picker.Item label="Site Members" value="20" />
+        <Picker.Item label="Friends Only" value="30" />
+        <Picker.Item label="Only Me" value="40" />
+      </Picker>
+
+      {/* Other Section */}
+      <Text style={styles.sectionTitle}>Other</Text>
+      
+      <View style={styles.switchContainer}>
+        <Text>Don't show my online status</Text>
+        <Switch value={hideOnlineStatus} onValueChange={setHideOnlineStatus} />
+      </View>
+
+      <Text style={styles.label}>My timezone</Text>
+      <Picker
+        selectedValue={timezone}
+        onValueChange={setTimezone}
+        style={styles.picker}
+      >
+        <Picker.Item label="UTC+0" value="0" />
+        <Picker.Item label="UTC+1" value="1" />
+        <Picker.Item label="UTC-5" value="-5" />
+        {/* Add all other UTC offsets as needed */}
+      </Picker>
+
+      {/* Theme Section */}
+      <Text style={styles.sectionTitle}>Theme</Text>
+      <Text style={styles.label}>Preferred color theme</Text>
+      <Picker
+        selectedValue={theme}
+        onValueChange={setTheme}
+        style={styles.picker}
+      >
+        <Picker.Item label="Light Theme" value="light_theme" />
+        <Picker.Item label="Dark Theme" value="dark_theme" />
+        <Picker.Item label="New preset" value="new_preset" />
+        {/* Add other theme options */}
+      </Picker>
+
+      {/* Messages and Chat Section */}
+      <Text style={styles.sectionTitle}>Messages and Chat</Text>
+
+      <View style={styles.switchContainer}>
+        <Text>Enable Chat (Messages will still work if you disable Chat)</Text>
+        <Switch value={chatEnabled} onValueChange={setChatEnabled} />
+      </View>
+
+      <View style={styles.switchContainer}>
+        <Text>Open minimized chat window for new message</Text>
+        <Switch value={chatMinimized} onValueChange={setChatMinimized} />
+      </View>
+
+      <View style={styles.switchContainer}>
+        <Text>Allow new messages only from friends</Text>
+        <Switch value={chatFriendsOnly} onValueChange={setChatFriendsOnly} />
+      </View>
+
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { padding: 16, backgroundColor: '#fff' },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', marginTop: 20, marginBottom: 10 },
+  label: { marginTop: 10, marginBottom: 5, fontSize: 16 },
+  picker: { borderWidth: 1, borderColor: '#ccc', borderRadius: 5 },
+  switchContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginVertical: 10 },
+});
+
+export default ProfileSettings;

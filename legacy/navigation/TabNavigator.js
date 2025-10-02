@@ -2,8 +2,8 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Platform } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialCommunityIcons } from 'react-native-vector-icons';
+import LinearGradient from 'react-native-linear-gradient';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // Import des écrans
 import HomeScreen from '../screens/HomeScreen';
@@ -11,7 +11,7 @@ import SearchScreen from '../screens/SearchScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import MenuScreen from '../screens/MenuScreen';
 import CydJerrNationScreen from '../screens/CydJerrNationScreen';
-import JoyJerrScreen from '../screens/JoyJerrScreen';
+import JoyJerrNavigator from '../../src/navigation/JoyJerrNavigator';
 import SagaJerrScreen from '../screens/SagaJerrScreen';
 import NewsJerrScreen from '../screens/NewsJerrScreen';
 import SpeakJerrScreen from '../screens/SpeakJerr/SpeakJerrScreen';
@@ -70,7 +70,7 @@ function HomeStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="HomeMain" component={HomeScreen} />
       <Stack.Screen name="CydJerrNation" component={CydJerrNationScreen} />
-      <Stack.Screen name="JoyJerr" component={JoyJerrScreen} />
+      <Stack.Screen name="JoyJerr" component={JoyJerrNavigator} />
       <Stack.Screen name="SagaJerr" component={SagaJerrScreen} />
       <Stack.Screen name="NewsJerr" component={NewsJerrScreen} />
       <Stack.Screen name="SpeakJerr" component={SpeakJerrScreen} />

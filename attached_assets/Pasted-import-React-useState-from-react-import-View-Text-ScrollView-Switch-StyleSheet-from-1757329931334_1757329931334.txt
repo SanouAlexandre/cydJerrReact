@@ -1,0 +1,127 @@
+import React, { useState } from "react";
+import { View, Text, ScrollView, Switch, StyleSheet } from "react-native";
+import RNPickerSelect from "react-native-picker-select";
+
+const NotificationSettings = () => {
+  const [emailIntensity, setEmailIntensity] = useState("0");
+
+  // Example notification states
+  const [notifications, setNotifications] = useState({
+    user_comment_email: true,
+    like_post_email: true,
+    like_comment_email: true,
+    stream_reply_comment_email: true,
+    profile_like_email: true,
+    wall_post_email: true,
+    tag_email: true,
+    tag_comment_email: true,
+    new_message_email: true,
+    friends_requests_email: true,
+    video_conversion_complete_email: true,
+    video_conversion_failed_email: true,
+    group_259_email: true,
+  });
+
+  const toggleNotification = (key) => {
+    setNotifications({
+      ...notifications,
+      [key]: !notifications[key],
+    });
+  };
+
+  const emailOptions = [
+    { label: "Real time", value: "0" },
+    { label: "One hour", value: "60" },
+    { label: "Two hours", value: "120" },
+    { label: "Three hours", value: "180" },
+    { label: "Four times a day", value: "360" },
+    { label: "Two times a day", value: "720" },
+    { label: "Once a day", value: "1440" },
+    { label: "Once in 7 days", value: "10080" },
+    { label: "Never", value: "999999" },
+  ];
+
+  const emailDescriptions = {
+    "0": "All enabled email notifications will be sent out immediately.",
+    "60": "You will receive a summary of unread on-site notifications approximately every hour.",
+    "120": "You will receive a summary of unread on-site notifications approximately every two hours.",
+    "180": "You will receive a summary of unread on-site notifications approximately every three hours.",
+    "360": "You will receive a summary of unread on-site notifications approximately four times a day.",
+    "720": "You will receive a summary of unread on-site notifications approximately two times a day.",
+    "1440": "You will receive a summary of unread on-site notifications approximately once a day.",
+    "10080": "You will receive a summary of unread on-site notifications approximately once a week.",
+    "999999": "You will not receive any email notifications.",
+  };
+
+  return (
+    <ScrollView style={styles.container}>
+      {/* Email Notification Intensity */}
+      <View style={styles.section}>
+        <Text style={styles.title}>Email Notification Intensity</Text>
+        <RNPickerSelect
+          onValueChange={setEmailIntensity}
+          items={emailOptions}
+          value={emailIntensity}
+          style={pickerSelectStyles}
+        />
+        <Text style={styles.description}>{emailDescriptions[emailIntensity]}</Text>
+      </View>
+
+      {/* Notifications List */}
+      <View style={styles.section}>
+        <Text style={styles.title}>Notifications</Text>
+        {Object.keys(notifications).map((key) => (
+          <View key={key} style={styles.notificationItem}>
+            <Text style={styles.notificationLabel}>{key.replace(/_/g, " ")}</Text>
+            <Switch
+              value={notifications[key]}
+              onValueChange={() => toggleNotification(key)}
+            />
+          </View>
+        ))}
+      </View>
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 16, backgroundColor: "#fff" },
+  section: { marginBottom: 24 },
+  title: { fontSize: 18, fontWeight: "bold", marginBottom: 8 },
+  description: { marginTop: 8, fontSize: 14, color: "#555" },
+  notificationItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginVertical: 6,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  notificationLabel: { fontSize: 16 },
+});
+
+const pickerSelectStyles = {
+  inputIOS: {
+    fontSize: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: "gray",
+    borderRadius: 4,
+    color: "black",
+    paddingRight: 30,
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 0.5,
+    borderColor: "purple",
+    borderRadius: 8,
+    color: "black",
+    paddingRight: 30,
+  },
+};
+
+export default NotificationSettings;

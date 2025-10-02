@@ -1,5 +1,5 @@
 import { Share, Alert } from 'react-native';
-import * as Clipboard from 'expo-clipboard';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 /**
  * Partager un post via les options natives de partage
@@ -35,7 +35,7 @@ export const sharePost = async (post) => {
 export const copyPostLink = async (postId) => {
   try {
     const shareUrl = `https://cydjerr.com/post/${postId}`;
-    await Clipboard.setStringAsync(shareUrl);
+    await Clipboard.setString(shareUrl);
     Alert.alert('Succès', 'Lien copié dans le presse-papiers');
     return shareUrl;
   } catch (error) {

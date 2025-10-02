@@ -9,354 +9,381 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Icon from 'react-native-vector-icons/Ionicons';
 import Video from 'react-native-video';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
 
 const { width: screenWidth } = Dimensions.get('window');
 const ITEM_WIDTH = (screenWidth - 48) / 2; // Pour 2 colonnes avec marges
 const MEDIA_HEIGHT = 280; // Augmenté pour un meilleur affichage
 
-const StatusItem = memo(({ 
-  status, 
-  currentUserId, 
-  onPress, 
-  onLongPress, 
-  onReaction, 
-  onComment, 
-  onView,
-  showFullContent = false 
-}) => {
-  const [videoStatus, setVideoStatus] = useState({});
-  const [imageError, setImageError] = useState(false);
+const StatusItem = memo(
+  ({
+    status,
+    currentUserId,
+    onPress,
+    onLongPress,
+    onReaction,
+    onComment,
+    onView,
+    showFullContent = false,
+  }) => {
+    const [videoStatus, setVideoStatus] = useState({});
+    const [imageError, setImageError] = useState(false);
 
-  // Vérifications de sécurité
-  if (!status || !status._id) {
-    return null;
-  }
-  
-  // Sécurisation du contenu pour éviter le rendu d'objets
-  const safeContent = React.useMemo(() => {
-    if (!status.content) return null;
-    if (typeof status.content === 'string') return status.content;
-    if (typeof status.content === 'object' && status.content.text) {
-      return status.content.text;
+    // Vérifications de sécurité
+    if (!status || !status._id) {
+      return null;
     }
-    return null;
-  }, [status.content]);
-  
-  const contentStyles = React.useMemo(() => {
-    if (!status.content || typeof status.content !== 'object') return {};
-    return {
-      color: status.content.textColor || '#000000',
-      backgroundColor: status.content.backgroundColor || 'transparent'
+
+    // Sécurisation du contenu pour éviter le rendu d'objets
+    const safeContent = React.useMemo(() => {
+      if (!status.content) return null;
+      if (typeof status.content === 'string') return status.content;
+      if (typeof status.content === 'object' && status.content.text) {
+        return status.content.text;
+      }
+      return null;
+    }, [status.content]);
+
+    const contentStyles = React.useMemo(() => {
+      if (!status.content || typeof status.content !== 'object') return {};
+      return {
+        color: status.content.textColor || '#000000',
+        backgroundColor: status.content.backgroundColor || 'transparent',
+      };
+    }, [status.content]);
+
+    // Informations de l'auteur
+    const author = status.author;
+    const authorName = author
+      ? `${author.firstName || ''} ${author.lastName || ''}`.trim() ||
+        author.username
+      : 'Utilisateur inconnu';
+
+    // Vérifier si c'est mon statut
+    const isMyStatus = status.author?._id === currentUserId;
+
+    // Vérifier si j'ai déjà réagi
+    const myReaction = status.reactions?.find(
+      reaction => reaction.user === currentUserId,
+    );
+
+    // Vérifier si j'ai déjà vu
+    const hasViewed = status.views?.some(view => view.user === currentUserId);
+
+    // Formatage de l'heure
+    const formatTime = timestamp => {
+      if (!timestamp) return '';
+
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diffInHours = (now - date) / (1000 * 60 * 60);
+
+      if (diffInHours < 1) {
+        const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+        return diffInMinutes < 1 ? "À l'instant" : `${diffInMinutes}min`;
+      } else if (diffInHours < 24) {
+        return `${Math.floor(diffInHours)}h`;
+      } else {
+        const diffInDays = Math.floor(diffInHours / 24);
+        return `${diffInDays}j`;
+      }
     };
-  }, [status.content]);
 
-  // Informations de l'auteur
-  const author = status.author;
-  const authorName = author 
-    ? `${author.firstName || ''} ${author.lastName || ''}`.trim() || author.username
-    : 'Utilisateur inconnu';
+    // Gérer la réaction
+    const handleReaction = reactionType => {
+      if (onReaction) {
+        onReaction(status._id, reactionType);
+      }
+    };
 
-  // Vérifier si c'est mon statut
-  const isMyStatus = status.author?._id === currentUserId;
+    // Gérer le commentaire
+    const handleComment = () => {
+      if (onComment) {
+        onComment(status._id);
+      }
+    };
 
-  // Vérifier si j'ai déjà réagi
-  const myReaction = status.reactions?.find(reaction => reaction.user === currentUserId);
+    // Gérer la vue
+    const handleView = () => {
+      if (!hasViewed && onView) {
+        onView(status._id);
+      }
+      if (onPress) {
+        onPress(status);
+      }
+    };
 
-  // Vérifier si j'ai déjà vu
-  const hasViewed = status.views?.some(view => view.user === currentUserId);
+    // Gérer les options
+    const handleOptions = () => {
+      const options = [{ text: 'Annuler', style: 'cancel' }];
 
-  // Formatage de l'heure
-  const formatTime = (timestamp) => {
-    if (!timestamp) return '';
-    
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInHours = (now - date) / (1000 * 60 * 60);
-    
-    if (diffInHours < 1) {
-      const diffInMinutes = Math.floor((now - date) / (1000 * 60));
-      return diffInMinutes < 1 ? 'À l\'instant' : `${diffInMinutes}min`;
-    } else if (diffInHours < 24) {
-      return `${Math.floor(diffInHours)}h`;
-    } else {
-      const diffInDays = Math.floor(diffInHours / 24);
-      return `${diffInDays}j`;
-    }
-  };
+      if (isMyStatus) {
+        options.push({
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: () => handleDelete(),
+        });
+      } else {
+        options.push({ text: 'Signaler', onPress: () => handleReport() });
+      }
 
-  // Gérer la réaction
-  const handleReaction = (reactionType) => {
-    if (onReaction) {
-      onReaction(status._id, reactionType);
-    }
-  };
+      Alert.alert('Options', '', options);
+    };
 
-  // Gérer le commentaire
-  const handleComment = () => {
-    if (onComment) {
-      onComment(status._id);
-    }
-  };
-
-  // Gérer la vue
-  const handleView = () => {
-    if (!hasViewed && onView) {
-      onView(status._id);
-    }
-    if (onPress) {
-      onPress(status);
-    }
-  };
-
-  // Gérer les options
-  const handleOptions = () => {
-    const options = [
-      { text: 'Annuler', style: 'cancel' },
-    ];
-
-    if (isMyStatus) {
-      options.push(
-        { text: 'Supprimer', style: 'destructive', onPress: () => handleDelete() }
+    // Supprimer le statut
+    const handleDelete = () => {
+      Alert.alert(
+        'Supprimer le statut',
+        'Êtes-vous sûr de vouloir supprimer ce statut ?',
+        [
+          { text: 'Annuler', style: 'cancel' },
+          {
+            text: 'Supprimer',
+            style: 'destructive',
+            onPress: () => {
+              // Dispatch delete action
+            },
+          },
+        ],
       );
-    } else {
-      options.push(
-        { text: 'Signaler', onPress: () => handleReport() }
-      );
-    }
+    };
 
-    Alert.alert('Options', '', options);
-  };
-
-  // Supprimer le statut
-  const handleDelete = () => {
-    Alert.alert(
-      'Supprimer le statut',
-      'Êtes-vous sûr de vouloir supprimer ce statut ?',
-      [
+    // Signaler le statut
+    const handleReport = () => {
+      Alert.alert('Signaler le statut', 'Voulez-vous signaler ce statut ?', [
         { text: 'Annuler', style: 'cancel' },
-        { text: 'Supprimer', style: 'destructive', onPress: () => {
-          // Dispatch delete action
-        }}
-      ]
-    );
-  };
+        {
+          text: 'Signaler',
+          onPress: () => {
+            // Dispatch report action
+            Alert.alert('Merci', 'Le statut a été signalé.');
+          },
+        },
+      ]);
+    };
 
-  // Signaler le statut
-  const handleReport = () => {
-    Alert.alert(
-      'Signaler le statut',
-      'Voulez-vous signaler ce statut ?',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        { text: 'Signaler', onPress: () => {
-          // Dispatch report action
-          Alert.alert('Merci', 'Le statut a été signalé.');
-        }}
-      ]
-    );
-  };
+    // Rendu du média amélioré
+    const renderMedia = () => {
+      // Vérifier différentes propriétés pour les médias
+      const mediaUrl =
+        status.mediaUrl ||
+        status.media?.url ||
+        status.image?.url ||
+        status.attachment?.url;
+      const mediaType = status.mediaType || status.media?.type || 'image';
 
-  // Rendu du média amélioré
-  const renderMedia = () => {
-    // Vérifier différentes propriétés pour les médias
-    const mediaUrl = status.mediaUrl || status.media?.url || status.image?.url || status.attachment?.url;
-    const mediaType = status.mediaType || status.media?.type || 'image';
-    
-    if (!mediaUrl) return null;
+      if (!mediaUrl) return null;
 
-    if (mediaType === 'image' || !mediaType) {
-      return (
-        <View style={[styles.mediaContainer, showFullContent && styles.fullMediaContainer]}>
-          {!imageError ? (
-            <Image
+      if (mediaType === 'image' || !mediaType) {
+        return (
+          <View
+            style={[
+              styles.mediaContainer,
+              showFullContent && styles.fullMediaContainer,
+            ]}
+          >
+            {!imageError ? (
+              <Image
+                source={{ uri: mediaUrl }}
+                style={[styles.media, showFullContent && styles.fullMedia]}
+                resizeMode={showFullContent ? 'contain' : 'cover'}
+                onError={() => {
+                  console.log('Erreur de chargement image:', mediaUrl);
+                  setImageError(true);
+                }}
+                onLoad={() =>
+                  console.log('Image chargée avec succès:', mediaUrl)
+                }
+              />
+            ) : (
+              <View
+                style={[
+                  styles.media,
+                  styles.errorMedia,
+                  showFullContent && styles.fullMedia,
+                ]}
+              >
+                <Icon name="image-outline" size={60} color="#8E8E93" />
+                <Text style={styles.errorText}>Image non disponible</Text>
+                <Text style={styles.errorSubText}>{mediaUrl}</Text>
+              </View>
+            )}
+          </View>
+        );
+      }
+
+      if (mediaType === 'video') {
+        return (
+          <View
+            style={[
+              styles.mediaContainer,
+              showFullContent && styles.fullMediaContainer,
+            ]}
+          >
+            <Video
               source={{ uri: mediaUrl }}
               style={[styles.media, showFullContent && styles.fullMedia]}
-              resizeMode={showFullContent ? "contain" : "cover"}
-              onError={() => {
-                console.log('Erreur de chargement image:', mediaUrl);
-                setImageError(true);
-              }}
-              onLoad={() => console.log('Image chargée avec succès:', mediaUrl)}
+              resizeMode={showFullContent ? 'contain' : 'cover'}
+              paused={true}
+              repeat={false}
+              controls={showFullContent}
+              onProgress={data => setVideoStatus(data)}
             />
-          ) : (
-            <View style={[styles.media, styles.errorMedia, showFullContent && styles.fullMedia]}>
-              <Ionicons name="image-outline" size={60} color="#8E8E93" />
-              <Text style={styles.errorText}>Image non disponible</Text>
-              <Text style={styles.errorSubText}>{mediaUrl}</Text>
-            </View>
-          )}
-        </View>
-      );
-    }
+            {!showFullContent && (
+              <TouchableOpacity
+                style={styles.videoOverlay}
+                onPress={handleView}
+              >
+                <View style={styles.playButton}>
+                  <Icon name="play" size={30} color="#FFFFFF" />
+                </View>
+              </TouchableOpacity>
+            )}
+          </View>
+        );
+      }
 
-    if (mediaType === 'video') {
+      return null;
+    };
+
+    // Rendu des réactions
+    const renderReactions = () => {
+      if (!status.reactions || status.reactions.length === 0) return null;
+
+      // Grouper les réactions par type
+      const reactionCounts = status.reactions.reduce((acc, reaction) => {
+        acc[reaction.type] = (acc[reaction.type] || 0) + 1;
+        return acc;
+      }, {});
+
+      const reactionEmojis = {
+        like: '👍',
+        love: '❤️',
+        laugh: '😂',
+        wow: '😮',
+        sad: '😢',
+        angry: '😡',
+      };
+
       return (
-        <View style={[styles.mediaContainer, showFullContent && styles.fullMediaContainer]}>
-          <Video
-            source={{ uri: mediaUrl }}
-            style={[styles.media, showFullContent && styles.fullMedia]}
-            resizeMode={showFullContent ? "contain" : "cover"}
-            paused={true}
-            repeat={false}
-            controls={showFullContent}
-            onProgress={(data) => setVideoStatus(data)}
-          />
-          {!showFullContent && (
-            <TouchableOpacity style={styles.videoOverlay} onPress={handleView}>
-              <View style={styles.playButton}>
-                <Ionicons name="play" size={30} color="#FFFFFF" />
-              </View>
-            </TouchableOpacity>
-          )}
+        <View style={styles.reactionsContainer}>
+          {Object.entries(reactionCounts).map(([type, count]) => (
+            <View key={type} style={styles.reactionItem}>
+              <Text style={styles.reactionEmoji}>{reactionEmojis[type]}</Text>
+              <Text style={styles.reactionCount}>{count}</Text>
+            </View>
+          ))}
         </View>
       );
-    }
+    };
 
-    return null;
-  };
+    // Rendu des statistiques
+    const renderStats = () => {
+      const viewsCount = status.views?.length || 0;
+      const commentsCount = status.comments?.length || 0;
 
-  // Rendu des réactions
-  const renderReactions = () => {
-    if (!status.reactions || status.reactions.length === 0) return null;
+      return (
+        <View style={styles.statsContainer}>
+          <View style={styles.statItem}>
+            <Icon name="eye-outline" size={16} color="#8E8E93" />
+            <Text style={styles.statText}>{viewsCount}</Text>
+          </View>
 
-    // Grouper les réactions par type
-    const reactionCounts = status.reactions.reduce((acc, reaction) => {
-      acc[reaction.type] = (acc[reaction.type] || 0) + 1;
-      return acc;
-    }, {});
-
-    const reactionEmojis = {
-      like: '👍',
-      love: '❤️',
-      laugh: '😂',
-      wow: '😮',
-      sad: '😢',
-      angry: '😡',
+          <View style={styles.statItem}>
+            <Icon name="chatbubble-outline" size={16} color="#8E8E93" />
+            <Text style={styles.statText}>{commentsCount}</Text>
+          </View>
+        </View>
+      );
     };
 
     return (
-      <View style={styles.reactionsContainer}>
-        {Object.entries(reactionCounts).map(([type, count]) => (
-          <View key={type} style={styles.reactionItem}>
-            <Text style={styles.reactionEmoji}>{reactionEmojis[type]}</Text>
-            <Text style={styles.reactionCount}>{count}</Text>
-          </View>
-        ))}
-      </View>
-    );
-  };
+      <TouchableOpacity
+        style={styles.container}
+        onPress={handleView}
+        onLongPress={onLongPress || handleOptions}
+        activeOpacity={0.95}
+      >
+        {/* En-tête */}
+        <View style={styles.header}>
+          <View style={styles.authorContainer}>
+            {author?.profilePicture ? (
+              <Image
+                source={{ uri: author.profilePicture }}
+                style={styles.authorAvatar}
+              />
+            ) : (
+              <View style={[styles.authorAvatar, styles.defaultAvatar]}>
+                <Icon name="person" size={20} color="#8E8E93" />
+              </View>
+            )}
 
-  // Rendu des statistiques
-  const renderStats = () => {
-    const viewsCount = status.views?.length || 0;
-    const commentsCount = status.comments?.length || 0;
-
-    return (
-      <View style={styles.statsContainer}>
-        <View style={styles.statItem}>
-          <Ionicons name="eye-outline" size={16} color="#8E8E93" />
-          <Text style={styles.statText}>{viewsCount}</Text>
-        </View>
-        
-        <View style={styles.statItem}>
-          <Ionicons name="chatbubble-outline" size={16} color="#8E8E93" />
-          <Text style={styles.statText}>{commentsCount}</Text>
-        </View>
-      </View>
-    );
-  };
-
-  return (
-    <TouchableOpacity
-      style={styles.container}
-      onPress={handleView}
-      onLongPress={onLongPress || handleOptions}
-      activeOpacity={0.95}
-    >
-      {/* En-tête */}
-      <View style={styles.header}>
-        <View style={styles.authorContainer}>
-          {author?.profilePicture ? (
-            <Image source={{ uri: author.profilePicture }} style={styles.authorAvatar} />
-          ) : (
-            <View style={[styles.authorAvatar, styles.defaultAvatar]}>
-              <Ionicons name="person" size={20} color="#8E8E93" />
+            <View style={styles.authorInfo}>
+              <Text style={styles.authorName}>{authorName}</Text>
+              <Text style={styles.timeText}>
+                {formatTime(status.createdAt)}
+              </Text>
             </View>
-          )}
-          
-          <View style={styles.authorInfo}>
-            <Text style={styles.authorName}>{authorName}</Text>
-            <Text style={styles.timeText}>{formatTime(status.createdAt)}</Text>
           </View>
-        </View>
-        
-        <TouchableOpacity onPress={handleOptions} style={styles.optionsButton}>
-          <Ionicons name="ellipsis-horizontal" size={20} color="#8E8E93" />
-        </TouchableOpacity>
-      </View>
 
-      {/* Contenu texte */}
-      {safeContent && (
-        <Text 
-          style={[
-            styles.content,
-            contentStyles
-          ]}
-        >
-          {safeContent}
-        </Text>
-      )}
-
-      {/* Média */}
-      {renderMedia()}
-
-      {/* Réactions */}
-      {renderReactions()}
-
-      {/* Actions - Style WhatsApp */}
-      <View style={styles.actionsContainer}>
-        <View style={styles.actionButtons}>
           <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => handleReaction(myReaction ? null : 'like')}
-            activeOpacity={0.7}
+            onPress={handleOptions}
+            style={styles.optionsButton}
           >
-            <Ionicons
-              name={myReaction ? 'heart' : 'heart-outline'}
-              size={24}
-              color={myReaction ? '#FF3B30' : '#8E8E93'}
-            />
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.actionButton} 
-            onPress={handleComment}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="chatbubble-outline" size={24} color="#8E8E93" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.actionButton}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="paper-plane-outline" size={24} color="#8E8E93" />
+            <Icon name="ellipsis-horizontal" size={20} color="#8E8E93" />
           </TouchableOpacity>
         </View>
-        
-        {renderStats()}
-      </View>
 
-      {/* Indicateur de vue */}
-      {!hasViewed && !isMyStatus && (
-        <View style={styles.unviewedIndicator} />
-      )}
-    </TouchableOpacity>
-  );
-});
+        {/* Contenu texte */}
+        {safeContent && (
+          <Text style={[styles.content, contentStyles]}>{safeContent}</Text>
+        )}
+
+        {/* Média */}
+        {renderMedia()}
+
+        {/* Réactions */}
+        {renderReactions()}
+
+        {/* Actions - Style WhatsApp */}
+        <View style={styles.actionsContainer}>
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => handleReaction(myReaction ? null : 'like')}
+              activeOpacity={0.7}
+            >
+              <Icon
+                name={myReaction ? 'heart' : 'heart-outline'}
+                size={24}
+                color={myReaction ? '#FF3B30' : '#8E8E93'}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={handleComment}
+              activeOpacity={0.7}
+            >
+              <Icon name="chatbubble-outline" size={24} color="#8E8E93" />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
+              <Icon name="paper-plane-outline" size={24} color="#8E8E93" />
+            </TouchableOpacity>
+          </View>
+
+          {renderStats()}
+        </View>
+
+        {/* Indicateur de vue */}
+        {!hasViewed && !isMyStatus && <View style={styles.unviewedIndicator} />}
+      </TouchableOpacity>
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   container: {

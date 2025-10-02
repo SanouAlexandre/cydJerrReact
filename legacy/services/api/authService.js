@@ -4,10 +4,11 @@ import { ENDPOINTS } from '../../config/api';
 // Service d'authentification
 class AuthService {
   // Connexion utilisateur
-  async login(email, password) {
+  async login(email, password, rememberMe = false) {
     console.log('authService.login called with:', { email, password: password ? '[HIDDEN]' : undefined });
     console.log('authService.login - typeof email:', typeof email);
     console.log('authService.login - email value:', email);
+    console.log('authService.login - rememberMe:', rememberMe);
     
     if (!email) {
       console.log('authService.login - Email is missing');
@@ -20,7 +21,10 @@ class AuthService {
     
     const response = await apiClient.post(ENDPOINTS.AUTH.LOGIN, {
       email: emailLower.trim(),
-      password
+      password,
+      rememberMe,
+      // Compatibilité avec API qui pourrait attendre snake_case
+      remember_me: rememberMe
     });
     
     console.log('authService.login - Full response:', response.data);

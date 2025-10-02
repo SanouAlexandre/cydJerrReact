@@ -1,0 +1,90 @@
+{/* View Mode Buttons */}
+      <View style={styles.viewModeGroup}>
+        <TouchableOpacity
+          style={[styles.button, viewMode === "small" && styles.activeButton]}
+          onPress={() => onViewModeChange("small")}
+        >
+          <Ionicons
+            name="grid"
+            size={20}
+            color={viewMode === "small" ? "#fff" : "#000"}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, viewMode === "large" && styles.activeButton]}
+          onPress={() => onViewModeChange("large")}
+        >
+          <Ionicons
+            name="grid-outline"
+            size={20}
+            color={viewMode === "large" ? "#fff" : "#000"}
+          />
+        </TouchableOpacity>
+      </View>
+
+      {/* Sort Dropdown */}
+      <View style={styles.actions}>
+        <TouchableOpacity
+          style={styles.sortButton}
+          onPress={() => setShowSortModal(true)}
+        >
+          <Text style={styles.sortButtonText}>
+            {sortOptions.find(option => option.value === sortOrder)?.label || "Trier"}
+          </Text>
+          <Ionicons name="chevron-down" size={16} color="#000" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Modal Sort Options */}
+      <Modal
+        visible={showSortModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowSortModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.sortModalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Trier par</Text>
+              <TouchableOpacity
+                onPress={() => setShowSortModal(false)}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={24} color="#000" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.sortOptionsContainer}>
+              {sortOptions.map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.sortOption,
+                    sortOrder === option.value && styles.sortOptionSelected,
+                  ]}
+                  onPress={() => {
+                    onSortOrderChange(option.value);
+                    setShowSortModal(false);
+                  }}
+                >
+                  <Ionicons
+                    name={option.icon}
+                    size={20}
+                    color={sortOrder === option.value ? "#007AFF" : "#666"}
+                  />
+                  <Text
+                    style={[
+                      styles.sortOptionText,
+                      sortOrder === option.value && styles.sortOptionTextSelected,
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                  {sortOrder === option.value && (
+                    <Ionicons name="checkmark" size={20} color="#007AFF" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>

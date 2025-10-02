@@ -1,0 +1,61 @@
+import React, { useState } from "react";
+import { View, Text, Picker, FlatList, ActivityIndicator, StyleSheet } from "react-native";
+
+const BlogPostsScreen = () => {
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [posts, setPosts] = useState([]); // Replace with API data
+  const [loading, setLoading] = useState(false);
+
+  const renderPost = ({ item }) => (
+    <View style={styles.postCard}>
+      <Text style={styles.postTitle}>{item.title}</Text>
+      <Text style={styles.postExcerpt}>{item.excerpt}</Text>
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      {/* Sort Filter */}
+      <View style={styles.filterContainer}>
+        <Text style={styles.filterLabel}>Sort by:</Text>
+        <Picker
+          selectedValue={sortOrder}
+          style={styles.picker}
+          onValueChange={(itemValue) => setSortOrder(itemValue)}
+        >
+          <Picker.Item label="Newest first" value="desc" />
+          <Picker.Item label="Oldest first" value="asc" />
+        </Picker>
+      </View>
+
+      {/* Blog Posts List */}
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" style={{ marginTop: 20 }} />
+      ) : posts.length === 0 ? (
+        <View style={styles.noPosts}>
+          <Text>You have no blog posts yet</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={posts}
+          renderItem={renderPost}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={{ paddingBottom: 20 }}
+        />
+      )}
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 16, backgroundColor: "#fff" },
+  filterContainer: { flexDirection: "row", alignItems: "center", marginBottom: 16 },
+  filterLabel: { marginRight: 8, fontSize: 16 },
+  picker: { height: 40, flex: 1 },
+  noPosts: { marginTop: 20, alignItems: "center" },
+  postCard: { marginBottom: 12, padding: 12, borderWidth: 1, borderColor: "#ccc", borderRadius: 8 },
+  postTitle: { fontSize: 16, fontWeight: "bold" },
+  postExcerpt: { fontSize: 14, marginTop: 4, color: "#555" },
+});
+
+export default BlogPostsScreen;

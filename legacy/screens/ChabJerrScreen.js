@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,8 +13,10 @@ import {
   Platform,
   Dimensions,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons, MaterialIcons, Feather } from '@expo/vector-icons';
+import LinearGradient from 'react-native-linear-gradient';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import Feather from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../redux/userSlice';
@@ -181,8 +183,8 @@ const ChabJerrScreen = () => {
       id: post._id || post.id,
       title: post.content || 'Sans titre',
       creator: post.author?.username || post.author?.name || 'Utilisateur inconnu',
-      avatar: post.author?.avatar || post.author?.profilePicture || 'https://via.placeholder.com/40',
-      thumbnail: post.media?.[0]?.url || post.media?.[0]?.thumbnail || 'https://via.placeholder.com/300x200',
+      avatar: sanitizeImageUri(post.author?.avatar || post.author?.profilePicture || 'https://via.placeholder.com/40'),
+      thumbnail: sanitizeImageUri(post.media?.[0]?.url || post.media?.[0]?.thumbnail || 'https://via.placeholder.com/300x200'),
       duration: post.media?.[0]?.duration ? formatDuration(post.media[0].duration) : '0:00',
       views: formatNumber(post.stats?.views || 0),
       likes: formatNumber(post.stats?.likes || 0),
@@ -195,6 +197,18 @@ const ChabJerrScreen = () => {
       sharesCount: post.stats?.shares || 0,
       isLiked: post.likes?.includes(user?.id) || false,
     };
+  };
+
+  // Ensure RN Image gets a string `uri`. Accept objects with `url` or nested `uri`.
+  const sanitizeImageUri = (input) => {
+    if (!input) return undefined;
+    if (typeof input === 'string') return input;
+    // Common shapes: { url }, { uri }, { data: { url } }
+    if (input.url && typeof input.url === 'string') return input.url;
+    if (input.uri && typeof input.uri === 'string') return input.uri;
+    if (input.data && typeof input.data.url === 'string') return input.data.url;
+    // Unexpected shapes: return undefined so RN uses fallback if provided
+    return undefined;
   };
   
   // Fonctions utilitaires pour le formatage
@@ -430,7 +444,7 @@ const ChabJerrScreen = () => {
           </TouchableOpacity>
           <TouchableOpacity style={styles.avatarContainer}>
             <Image 
-              source={{ uri: user?.avatar || 'https://via.placeholder.com/32' }}
+              source={{ uri: sanitizeImageUri(user?.avatar) || 'https://via.placeholder.com/32' }}
               style={styles.avatar}
             />
           </TouchableOpacity>
@@ -499,7 +513,7 @@ const ChabJerrScreen = () => {
   const renderVideoCard = (video) => (
     <View key={video.id} style={styles.videoCard}>
       <View style={styles.thumbnailContainer}>
-        <Image source={{ uri: video.thumbnail }} style={styles.thumbnail} />
+        <Image source={{ uri: sanitizeImageUri(video.thumbnail) || 'https://via.placeholder.com/300x200' }} style={styles.thumbnail} />
         <View style={styles.durationBadge}>
           <Text style={styles.durationText}>{video.duration}</Text>
         </View>
@@ -511,7 +525,7 @@ const ChabJerrScreen = () => {
       
       <View style={styles.videoInfo}>
         <View style={styles.videoHeader}>
-          <Image source={{ uri: video.avatar }} style={styles.creatorAvatar} />
+          <Image source={{ uri: sanitizeImageUri(video.avatar) || 'https://via.placeholder.com/40' }} style={styles.creatorAvatar} />
           <View style={styles.videoMeta}>
             <Text style={styles.videoTitle} numberOfLines={2}>
               {video.title}
@@ -572,7 +586,10 @@ const ChabJerrScreen = () => {
   const renderLiveCard = (live) => (
     <View key={live.id} style={[styles.videoCard, styles.liveCard]}>
       <View style={styles.thumbnailContainer}>
-        <Image source={{ uri: live.thumbnail }} style={styles.thumbnail} />
+        <Image 
+          source={{ uri: sanitizeImageUri(live.thumbnail) || 'https://via.placeholder.com/640x360?text=No+Image' }} 
+          style={styles.thumbnail} 
+        />
         <View style={styles.liveBadge}>
           <View style={styles.liveIndicator} />
           <Text style={styles.liveText}>LIVE</Text>
@@ -589,7 +606,10 @@ const ChabJerrScreen = () => {
       
       <View style={styles.videoInfo}>
         <View style={styles.videoHeader}>
-          <Image source={{ uri: live.avatar }} style={styles.creatorAvatar} />
+          <Image 
+            source={{ uri: sanitizeImageUri(live.avatar) || 'https://via.placeholder.com/36' }} 
+            style={styles.creatorAvatar} 
+          />
           <View style={styles.videoMeta}>
             <Text style={styles.videoTitle} numberOfLines={2}>
               {live.title}
@@ -738,7 +758,10 @@ const ChabJerrScreen = () => {
       
       <View style={styles.videoInfo}>
         <View style={styles.videoHeader}>
-          <Image source={{ uri: audio.avatar }} style={styles.creatorAvatar} />
+          <Image 
+            source={{ uri: sanitizeImageUri(audio.avatar) || 'https://via.placeholder.com/36' }} 
+            style={styles.creatorAvatar} 
+          />
           <View style={styles.videoMeta}>
             <Text style={styles.videoTitle} numberOfLines={2}>
               {audio.title}

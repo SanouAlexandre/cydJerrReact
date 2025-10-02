@@ -1,0 +1,72 @@
+{/* App logos JoyJerr */}
+          <View style={[styles.appLogoItem, styles.appLogo6]}>
+            <Image
+              source={require("@/attached_assets/logoCydJerr4Grand_1756299210471.png")}
+              style={styles.appLogoSize2}
+            />
+            <View style={styles.appNameBorder}>
+              <View style={styles.appNameContainer}>
+                <Text style={styles.appNameText}>NewsJerr</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={[styles.appLogoItem, styles.appLogo7]}>
+            <Image
+              source={require("@/attached_assets/logoCydJerr4Grand_1756299210471.png")}
+              style={styles.appLogoSize2}
+            />
+            <View style={styles.appNameBorder}>
+              <View style={styles.appNameContainer}>
+                <Text style={styles.appNameText}>CapiJerr</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={[styles.appLogoItem, styles.appLogo8]}>
+            <Image
+              source={require("@/attached_assets/logoCydJerr4Grand_1756299210471.png")}
+              style={styles.appLogoSize2}
+            />
+            <View style={styles.appNameBorder}>
+              <View style={styles.appNameContainer}>
+                <Text style={styles.appNameText}>ChabJerr</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={[styles.appLogoItem, styles.appLogo9]}>
+            <Image
+              source={require("@/attached_assets/logoCydJerr4Grand_1756299210471.png")}
+              style={styles.appLogoSize2}
+            />
+            <View style={styles.appNameBorder}>
+              <View style={styles.appNameContainer}>
+                <Text style={styles.appNameText}>EvenJerr</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={[styles.appLogoItem, styles.appLogo10]}>
+            <Image
+              source={require("@/attached_assets/logoCydJerr4Grand_1756299210471.png")}
+              style={styles.appLogoSize2}
+            />
+            <View style={styles.appNameBorder}>
+              <View style={styles.appNameContainer}>
+                <Text style={styles.appNameText}>PiolJerr</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={[styles.appLogoItem, styles.appLogo11]}>
+            <Image
+              source={require("@/attached_assets/logoCydJerr4Grand_1756299210471.png")}
+              style={styles.appLogoSize2}
+            />
+            <View style={styles.appNameBorder}>
+              <View style={styles.appNameContainer}>
+                <Text style={styles.appNameText}>VagoJerr</Text>
+              </View>
+            </View>
+          </View>

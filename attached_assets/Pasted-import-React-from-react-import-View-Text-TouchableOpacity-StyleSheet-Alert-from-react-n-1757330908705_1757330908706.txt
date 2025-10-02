@@ -1,0 +1,75 @@
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
+
+const NotificationShortcuts = () => {
+  // Handlers for each shortcut
+  const handleEnableAll = () => {
+    Alert.alert("Shortcut Action", "Enable all notifications");
+    // Replace with API call or logic
+  };
+
+  const handleDisableAll = () => {
+    Alert.alert("Shortcut Action", "Disable all notifications");
+    // Replace with API call or logic
+  };
+
+  const handleDisableEmails = () => {
+    Alert.alert("Shortcut Action", "Disable email notifications");
+    // Replace with API call or logic
+  };
+
+  const handleReset = () => {
+    Alert.alert("Shortcut Action", "Reset notifications to default");
+    // Replace with API call or logic
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Shortcuts</Text>
+      <Text style={styles.description}>
+        Quickly manage all your preferences at once.
+      </Text>
+
+      <View style={styles.buttonGroup}>
+        <TouchableOpacity style={styles.button} onPress={handleEnableAll}>
+          <Text style={styles.buttonText}>Enable all</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.button} onPress={handleDisableAll}>
+          <Text style={styles.buttonText}>Disable all</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.button} onPress={handleDisableEmails}>
+          <Text style={styles.buttonText}>Disable emails</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.button} onPress={handleReset}>
+          <Text style={styles.buttonText}>Reset to default</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { padding: 16, backgroundColor: "#fff", marginBottom: 24 },
+  title: { fontSize: 18, fontWeight: "bold", marginBottom: 8 },
+  description: { fontSize: 14, color: "#555", marginBottom: 12 },
+  buttonGroup: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+  },
+  button: {
+    backgroundColor: "#007BFF",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 4,
+    marginVertical: 4,
+    minWidth: "48%", // two buttons per row
+    alignItems: "center",
+  },
+  buttonText: { color: "#fff", fontSize: 14, fontWeight: "500" },
+});
+
+export default NotificationShortcuts;

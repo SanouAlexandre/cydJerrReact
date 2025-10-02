@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit';
 import authService from '../services/api/authService';
 import userService from '../services/api/userService';
-import { saveAuthData, clearAuthData } from '../services/api/apiClient';
+import { saveAuthData, clearAuthData, getAuthData } from '../services/api/apiClient';
 
 // État initial
 const initialState = {
@@ -255,12 +255,30 @@ export const checkAuthStatus = createAsyncThunk(
   'user/checkAuthStatus',
   async (_, { rejectWithValue }) => {
     try {
+      // Essayer de récupérer l'utilisateur côté serveur
       const result = await authService.checkAuthStatus();
       if (result.success && result.user) {
         return result.user;
       }
+
+      // Si la requête n'indique pas un utilisateur mais que nous avons des tokens et des données locales, garder la session
+      const { accessToken, userData } = await getAuthData();
+      if (accessToken && userData) {
+        return userData;
+      }
+
+      // Aucun utilisateur: considérer non authentifié
       return null;
     } catch (error) {
+      // En cas d'erreur réseau, ne pas déconnecter si des tokens et des données locales existent
+      try {
+        const { accessToken, userData } = await getAuthData();
+        if (accessToken && userData) {
+          return userData;
+        }
+      } catch (_) {
+        // Ignorer les erreurs de lecture locale
+      }
       return rejectWithValue(error.message || 'Erreur lors de la vérification');
     }
   }
@@ -495,10 +513,8 @@ const userSlice = createSlice({
       })
       .addCase(checkAuthStatus.rejected, (state) => {
         state.isLoading = false;
-        state.isAuthenticated = false;
-        state.user = null;
-        state.profile = null;
-        state.justRegistered = false; // Réinitialiser justRegistered en cas d'erreur
+        // Ne pas écraser l'état authentifié sur une erreur réseau
+        // Laisser isAuthenticated/user/profile tels quels
       })
       
       // Verify Email

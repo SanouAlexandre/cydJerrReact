@@ -17,10 +17,12 @@ import {
   Dimensions,
 } from 'react-native';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Feather, Ionicons, MaterialCommunityIcons } from 'react-native-vector-icons';
+import LinearGradient from 'react-native-linear-gradient';
+import Feather from 'react-native-vector-icons/Feather';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useSelector, useDispatch } from 'react-redux';
-import * as ImagePicker from 'expo-image-picker';
+import {launchImageLibrary, MediaType, ImagePickerResponse} from 'react-native-image-picker';
 import { starJerrTokens } from '../utils/starJerrTokens';
 import capiJerrService from '../services/capiJerrService';
 import starService from '../services/starService';
@@ -266,16 +268,26 @@ const StarTokensScreen = ({ navigation }) => {
   };
   
   const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
+    const options = {
+      mediaType: 'photo',
       quality: 1,
+      includeBase64: false,
+    };
+
+    launchImageLibrary(options, (response) => {
+      if (response.didCancel) {
+        return;
+      }
+      
+      if (response.errorMessage) {
+        console.error('Erreur lors de la sélection de l\'image:', response.errorMessage);
+        return;
+      }
+
+      if (response.assets && response.assets.length > 0) {
+        setTokenForm({ ...tokenForm, image: response.assets[0].uri });
+      }
     });
-    
-    if (!result.canceled) {
-      setTokenForm({ ...tokenForm, image: result.assets[0].uri });
-    }
   };
   
   const validateForm = () => {

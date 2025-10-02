@@ -1,0 +1,73 @@
+import React from "react";
+import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+
+interface PostHeaderProps {
+  avatar: string;
+  author: string;
+  time: string;
+  privacy: "Public" | "Friends Only" | "Site Members" | "Only Me";
+  subtitle?: string;
+}
+
+const PostHeader: React.FC<PostHeaderProps> = ({
+  avatar,
+  author,
+  time,
+  privacy,
+  subtitle,
+}) => {
+  return (
+    <View style={styles.header}>
+      {/* Avatar */}
+      <Image source={{ uri: avatar }} style={styles.avatar} />
+
+      {/* Post Info */}
+      <View style={{ flex: 1 }}>
+        <Text style={styles.author}>
+          {author}{" "}
+          {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+        </Text>
+        <View style={styles.metaRow}>
+          <Text style={styles.time}>{time}</Text>
+          <Ionicons
+            name={
+              privacy === "Public"
+                ? "earth"
+                : privacy === "Friends Only"
+                  ? "people"
+                  : privacy === "Site Members"
+                    ? "person"
+                    : "lock-closed"
+            }
+            size={14}
+            color="#777"
+            style={{ marginLeft: 6 }}
+          />
+          <Text style={styles.privacy}>{privacy}</Text>
+        </View>
+      </View>
+
+      {/* Options Button */}
+      <TouchableOpacity>
+        <MaterialIcons name="more-horiz" size={22} color="#555" />
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+export default PostHeader;
+
+const styles = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
+  author: { fontWeight: "bold", fontSize: 16 },
+  subtitle: { fontSize: 14, color: "#555" },
+  metaRow: { flexDirection: "row", alignItems: "center", marginTop: 2 },
+  time: { fontSize: 12, color: "#777" },
+  privacy: { fontSize: 12, color: "#777", marginLeft: 4 },
+});

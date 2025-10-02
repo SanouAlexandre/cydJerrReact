@@ -12,13 +12,13 @@ import {
   Share,
   Platform,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
 import { Ionicons } from 'react-native-vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
+import RNFS from 'react-native-fs';
+import RNShare from 'react-native-share';
 import cloudService from '../services/cloudService';
 import userService from '../services/api/userService';
 
@@ -114,18 +114,22 @@ const CloudSettingsScreen = () => {
               
               // Créer un fichier temporaire avec les données exportées
               const fileName = `cydjerr_export_${new Date().toISOString().split('T')[0]}.json`;
-              const fileUri = FileSystem.documentDirectory + fileName;
+              const fileUri = RNFS.DocumentDirectoryPath + '/' + fileName;
               
-              await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(data, null, 2));
+              await RNFS.writeFile(fileUri, JSON.stringify(data, null, 2), 'utf8');
               
               // Partager le fichier
-              if (await Sharing.isAvailableAsync()) {
-                await Sharing.shareAsync(fileUri, {
-                  mimeType: 'application/json',
-                  dialogTitle: 'Exporter les données CYDJERR',
+              try {
+                await RNShare.open({
+                  url: `file://${fileUri}`,
+                  type: 'application/json',
+                  title: 'Exporter les données CYDJERR',
+                  filename: fileName,
                 });
-              } else {
-                Alert.alert('Succès', `Données exportées vers: ${fileName}`);
+              } catch (shareError) {
+                if (shareError.message !== 'User did not share') {
+                  Alert.alert('Succès', `Données exportées vers: ${fileName}`);
+                }
               }
             } catch (error) {
               console.error('Erreur lors de l\'export des données:', error);

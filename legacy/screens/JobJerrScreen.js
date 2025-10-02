@@ -10,11 +10,10 @@ import {
   StatusBar,
   Platform,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
-import { Ionicons } from 'react-native-vector-icons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useDispatch, useSelector } from 'react-redux';
-import { useFonts } from 'expo-font';
 import {
   setComposerText,
   publishPost,
@@ -285,12 +284,8 @@ const JobJerrPostCard = ({ post }) => {
 const JobJerrScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const { posts } = useSelector(state => state.jobjerr);
+  const fontsLoaded = true;
   
-  const [fontsLoaded] = useFonts({
-    'Poppins-Regular': require('../assets/fonts/Poppins-Regular.ttf'),
-    'Poppins-Bold': require('../assets/fonts/Poppins-Bold.ttf'),
-  });
-
   const renderPost = ({ item }) => (
     <JobJerrPostCard post={item} />
   );

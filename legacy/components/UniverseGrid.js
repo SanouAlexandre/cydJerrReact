@@ -7,8 +7,8 @@ import {
   ScrollView,
   Dimensions,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { MaterialCommunityIcons } from "react-native-vector-icons";
+import LinearGradient from 'react-native-linear-gradient';
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { useSelector, useDispatch } from "react-redux";
 import { selectUniverse } from "../redux/universesSlice";
 import { setCurrentPage } from "../redux/navigationSlice";

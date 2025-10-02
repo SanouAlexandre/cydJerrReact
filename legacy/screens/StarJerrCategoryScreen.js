@@ -12,7 +12,7 @@ import {
   Dimensions,
   Alert,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
 import { Feather, Ionicons, MaterialCommunityIcons } from 'react-native-vector-icons';
 import { useSelector, useDispatch } from 'react-redux';
 import { setQuery } from '../redux/starJerrSlice';

@@ -13,7 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
 import { Feather, Ionicons, MaterialCommunityIcons } from 'react-native-vector-icons';
 import { starJerrStyles } from '../styles/starJerrStyles';

@@ -22,10 +22,13 @@ const AuthNavigator = () => {
   const dispatch = useDispatch();
   const { isAuthenticated, isLoading, user, justRegistered } = useSelector(selectAuth);
 
-  // Vérifier le statut d'authentification au démarrage
+  // Vérifier le statut d'authentification au démarrage uniquement si non authentifié
+  // Évite d'écraser l'état persisté (Remember Me) en cas d'erreur réseau
   useEffect(() => {
-    dispatch(checkAuthStatus());
-  }, [dispatch]);
+    if (!isAuthenticated) {
+      dispatch(checkAuthStatus());
+    }
+  }, [dispatch, isAuthenticated]);
 
   // Gérer la navigation initiale selon l'état justRegistered
   const getInitialRouteName = () => {

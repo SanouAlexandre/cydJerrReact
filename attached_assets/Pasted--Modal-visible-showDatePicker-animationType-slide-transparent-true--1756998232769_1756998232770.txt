@@ -1,0 +1,113 @@
+<Modal
+        visible={showDatePicker}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowDatePicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Pin until ...</Text>
+
+            <Text style={styles.sectionLabel}>Date</Text>
+            <View style={styles.datePickerRow}>
+              <TouchableOpacity
+                style={styles.datePickerItem}
+                onPress={() => setShowDayPicker(!showDayPicker)}
+              >
+                <Text style={styles.datePickerText}>{selectedDay}</Text>
+                <Ionicons name="chevron-down" size={16} color="#666" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.datePickerItem}
+                onPress={() => setShowMonthPicker(!showMonthPicker)}
+              >
+                <Text style={styles.datePickerText}>{selectedMonth}</Text>
+                <Ionicons name="chevron-down" size={16} color="#666" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.datePickerItem}
+                onPress={() => setShowYearPicker(!showYearPicker)}
+              >
+                <Text style={styles.datePickerText}>{selectedYear}</Text>
+                <Ionicons name="chevron-down" size={16} color="#666" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Day Picker */}
+            {showDayPicker && (
+              <View style={styles.pickerDropdown}>
+                <ScrollView style={styles.pickerScrollView}>
+                  {days.map((day) => (
+                    <TouchableOpacity
+                      key={day}
+                      style={styles.pickerOption}
+                      onPress={() => {
+                        setSelectedDay(day);
+                        setShowDayPicker(false);
+                      }}
+                    >
+                      <Text style={styles.pickerOptionText}>{day}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Month Picker */}
+            {showMonthPicker && (
+              <View style={styles.pickerDropdown}>
+                <ScrollView style={styles.pickerScrollView}>
+                  {months.map((month) => (
+                    <TouchableOpacity
+                      key={month}
+                      style={styles.pickerOption}
+                      onPress={() => {
+                        setSelectedMonth(month);
+                        setShowMonthPicker(false);
+                      }}
+                    >
+                      <Text style={styles.pickerOptionText}>{month}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Year Picker */}
+            {showYearPicker && (
+              <View style={styles.pickerDropdown}>
+                <ScrollView style={styles.pickerScrollView}>
+                  {years.map((year) => (
+                    <TouchableOpacity
+                      key={year}
+                      style={styles.pickerOption}
+                      onPress={() => {
+                        setSelectedYear(year.toString());
+                        setShowYearPicker(false);
+                      }}
+                    >
+                      <Text style={styles.pickerOptionText}>{year}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    margin: 20,
+    borderRadius: 12,
+    padding: 20,
+    width: "90%",
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+  }, 

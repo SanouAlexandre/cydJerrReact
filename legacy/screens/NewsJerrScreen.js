@@ -12,20 +12,14 @@ import {
   FlatList,
   Animated,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
-import { Ionicons, MaterialIcons } from 'react-native-vector-icons';
-import { useFonts } from 'expo-font';
-
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 const { width, height } = Dimensions.get('window');
 const isTablet = width > 768;
 
 const NewsJerrScreen = ({ navigation }) => {
-  const [fontsLoaded] = useFonts({
-    'Poppins-Regular': require('../assets/fonts/Poppins-Regular.ttf'),
-    'Poppins-Bold': require('../assets/fonts/Poppins-Bold.ttf'),
-  });
-
   const [activeCategory, setActiveCategory] = useState('À la Une');
   const [showActionSheet, setShowActionSheet] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -96,6 +90,11 @@ const NewsJerrScreen = ({ navigation }) => {
     { id: 4, name: 'Emma Wilson', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face', followers: '76K' }
   ];
 
+  // Filtrage des articles selon la catégorie active
+  const filteredArticles = activeCategory === 'À la Une'
+    ? newsArticles
+    : newsArticles.filter(article => article.category === activeCategory);
+
   const toggleActionSheet = () => {
     if (showActionSheet) {
       Animated.parallel([
@@ -136,8 +135,8 @@ const NewsJerrScreen = ({ navigation }) => {
             <Text style={styles.newsCategory}>{item.category}</Text>
             <Text style={styles.newsTime}>{item.time}</Text>
           </View>
-          <Text style={styles.newsTitle} numberOfLines={2}>{item.title}</Text>
-          <Text style={styles.newsExcerpt} numberOfLines={3}>{item.excerpt}</Text>
+          <Text style={styles.newsTitle} numberOfLines={2} ellipsizeMode="tail">{item.title}</Text>
+          <Text style={styles.newsExcerpt} numberOfLines={3} ellipsizeMode="tail">{item.excerpt}</Text>
           <View style={styles.newsFooter}>
             <Text style={styles.newsAuthor}>Par {item.author}</Text>
             <View style={styles.newsActions}>
@@ -187,10 +186,6 @@ const NewsJerrScreen = ({ navigation }) => {
       </BlurView>
     </View>
   );
-
-  if (!fontsLoaded) {
-    return null;
-  }
 
   return (
     <View style={styles.container}>
@@ -244,7 +239,7 @@ const NewsJerrScreen = ({ navigation }) => {
             <View style={styles.desktopLayout}>
               <View style={styles.feedColumn}>
                 <FlatList
-                  data={newsArticles}
+                  data={filteredArticles}
                   renderItem={renderNewsCard}
                   keyExtractor={(item) => item.id.toString()}
                   showsVerticalScrollIndicator={false}
@@ -264,7 +259,7 @@ const NewsJerrScreen = ({ navigation }) => {
               contentContainerStyle={styles.scrollContent}
             >
               <FlatList
-                data={newsArticles}
+                data={filteredArticles}
                 renderItem={renderNewsCard}
                 keyExtractor={(item) => item.id.toString()}
                 scrollEnabled={false}
@@ -376,13 +371,16 @@ const styles = StyleSheet.create({
   },
   categoriesContainer: {
     paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)'
   },
   categoriesContent: {
     paddingHorizontal: 16,
+    paddingVertical: 4
   },
   categoryTab: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     marginRight: 12,
     borderRadius: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -390,17 +388,21 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   activeCategoryTab: {
-    backgroundColor: 'rgba(255, 215, 0, 0.2)',
+    backgroundColor: 'rgba(255, 215, 0, 0.18)',
     borderColor: '#FFD700',
   },
   categoryText: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: 'Poppins-Regular',
     color: '#FFFFFF',
+    includeFontPadding: false,
+    textAlignVertical: 'center'
   },
   activeCategoryText: {
     color: '#FFD700',
     fontFamily: 'Poppins-Bold',
+    includeFontPadding: false,
+    textAlignVertical: 'center'
   },
   mainContent: {
     flex: 1,
@@ -430,11 +432,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 16,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
   newsCardBlur: {
     borderRadius: 16,
@@ -449,12 +451,13 @@ const styles = StyleSheet.create({
   },
   newsContent: {
     padding: 16,
+    flexDirection: 'column',
   },
   newsHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   newsCategory: {
     fontSize: 12,
@@ -471,15 +474,16 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'Poppins-Bold',
     color: '#FFFFFF',
-    marginBottom: 8,
+    marginBottom: 10,
     lineHeight: 24,
   },
   newsExcerpt: {
     fontSize: 14,
     fontFamily: 'Poppins-Regular',
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.85)',
     lineHeight: 20,
-    marginBottom: 12,
+    marginBottom: 10,
+    marginTop: 4,
   },
   newsFooter: {
     flexDirection: 'row',
@@ -499,7 +503,8 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   mobileWidgets: {
-    marginTop: 20,
+    marginTop: 12,
+    paddingHorizontal: 4,
   },
   widget: {
     marginBottom: 16,

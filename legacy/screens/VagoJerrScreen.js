@@ -12,10 +12,11 @@ import {
   Alert,
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons, MaterialCommunityIcons } from 'react-native-vector-icons';
+import LinearGradient from 'react-native-linear-gradient';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useDispatch, useSelector } from 'react-redux';
-import * as Location from 'expo-location';
+import Geolocation from '@react-native-community/geolocation';
 import { formatJerr, eurToJerr } from '../utils/price';
 // import MapView, { Marker } from 'react-native-maps'; // Removed due to native module requirements
 
@@ -56,14 +57,26 @@ const VagoJerrScreen = ({ navigation }) => {
 
   const getCurrentLocation = async () => {
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
+      // Request location permission
+      const hasPermission = await new Promise((resolve) => {
+        Geolocation.requestAuthorization(
+          () => resolve(true),
+          () => resolve(false)
+        );
+      });
+      
+      if (!hasPermission) {
         Alert.alert('Permission refusée', 'L\'accès à la localisation est nécessaire pour VagoJerr');
         return;
       }
 
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High,
+      // Get current position
+      const location = await new Promise((resolve, reject) => {
+        Geolocation.getCurrentPosition(
+          (position) => resolve(position),
+          (error) => reject(error),
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+        );
       });
       
       setUserLocation({

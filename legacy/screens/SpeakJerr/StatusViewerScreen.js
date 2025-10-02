@@ -14,8 +14,8 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from 'react-native-vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import LinearGradient from 'react-native-linear-gradient';
 import StatusItem from '../../components/SpeakJerr/StatusItem';
 
 const { width, height } = Dimensions.get('window');

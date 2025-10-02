@@ -14,12 +14,12 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
-import { Feather, MaterialCommunityIcons, Ionicons } from 'react-native-vector-icons';
+import Feather from 'react-native-vector-icons/Feather';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useSelector, useDispatch } from 'react-redux';
-import { useFonts } from 'expo-font';
-
 // Import des actions Redux
 import {
   fetchFundingHome,
@@ -362,12 +362,6 @@ const FundingJerrScreen = ({ navigation }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   
   // Chargement des polices
-  const [fontsLoaded] = useFonts({
-    'Poppins-Regular': require('../assets/fonts/Poppins-Regular.ttf'),
-    'Poppins-Bold': require('../assets/fonts/Poppins-Bold.ttf'),
-    'Poppins-SemiBold': require('../assets/fonts/Poppins-SemiBold.ttf'),
-  });
-
   // Chargement initial des données
   useEffect(() => {
     dispatch(fetchFundingHome());

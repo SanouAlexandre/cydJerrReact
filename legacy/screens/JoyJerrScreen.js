@@ -18,13 +18,13 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
-import { MaterialCommunityIcons } from "react-native-vector-icons";
+import LinearGradient from 'react-native-linear-gradient';
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { BlurView } from '@react-native-community/blur';
 import { useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
-import * as ImagePicker from 'expo-image-picker';
-import * as Location from 'expo-location';
+import {launchImageLibrary, launchCamera, MediaType, ImagePickerResponse} from 'react-native-image-picker';
+import Geolocation from '@react-native-community/geolocation';
 import { usePosts } from '../hooks/usePosts';
 import { useMyGroups, useTrendingGroups } from '../hooks/useGroups';
 import { useConversations, useMessages } from '../hooks/useMessages';
@@ -154,29 +154,27 @@ const JoyJerrScreen = ({ navigation }) => {
   // Fonctions de gestion des médias
   const handleSelectPhoto = async () => {
     try {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
-      if (permissionResult.granted === false) {
-        Alert.alert('Permission requise', 'Permission d\'accès à la galerie requise pour sélectionner une photo.');
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
+      const options = {
+        mediaType: 'photo',
         quality: 0.8,
-        allowsMultipleSelection: false,
-      });
+        includeBase64: false,
+      };
 
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        const asset = result.assets[0];
-        setSelectedMedia(prev => [...prev, {
-          uri: asset.uri,
-          type: asset.type || 'image/jpeg',
-          name: asset.fileName || 'photo.jpg'
-        }]);
-      }
+      launchImageLibrary(options, (response) => {
+        if (response.didCancel) {
+          console.log('Sélection de photo annulée par l\'utilisateur');
+        } else if (response.errorMessage) {
+          console.error('Erreur lors de la sélection de photo:', response.errorMessage);
+          Alert.alert('Erreur', 'Une erreur est survenue lors de la sélection de la photo.');
+        } else if (response.assets && response.assets.length > 0) {
+          const asset = response.assets[0];
+          setSelectedMedia(prev => [...prev, {
+            uri: asset.uri,
+            type: asset.type || 'image/jpeg',
+            name: asset.fileName || 'photo.jpg'
+          }]);
+        }
+      });
     } catch (error) {
       console.error('Erreur lors de la sélection de photo:', error);
       Alert.alert('Erreur', 'Une erreur est survenue lors de la sélection de la photo.');
@@ -185,28 +183,28 @@ const JoyJerrScreen = ({ navigation }) => {
 
   const handleSelectVideo = async () => {
     try {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
-      if (permissionResult.granted === false) {
-        Alert.alert('Permission requise', 'Permission d\'accès à la galerie requise pour sélectionner une vidéo.');
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
-        allowsEditing: true,
+      const options = {
+        mediaType: 'video',
         quality: 0.8,
-        allowsMultipleSelection: false,
-      });
+        videoQuality: 'medium',
+        includeBase64: false,
+      };
 
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        const asset = result.assets[0];
-        setSelectedMedia(prev => [...prev, {
-          uri: asset.uri,
-          type: asset.type || 'video/mp4',
-          name: asset.fileName || 'video.mp4'
-        }]);
-      }
+      launchImageLibrary(options, (response) => {
+        if (response.didCancel) {
+          console.log('Sélection de vidéo annulée par l\'utilisateur');
+        } else if (response.errorMessage) {
+          console.error('Erreur lors de la sélection de vidéo:', response.errorMessage);
+          Alert.alert('Erreur', 'Une erreur est survenue lors de la sélection de la vidéo.');
+        } else if (response.assets && response.assets.length > 0) {
+          const asset = response.assets[0];
+          setSelectedMedia(prev => [...prev, {
+            uri: asset.uri,
+            type: asset.type || 'video/mp4',
+            name: asset.fileName || 'video.mp4'
+          }]);
+        }
+      });
     } catch (error) {
       console.error('Erreur lors de la sélection de vidéo:', error);
       Alert.alert('Erreur', 'Une erreur est survenue lors de la sélection de la vidéo.');
@@ -215,28 +213,38 @@ const JoyJerrScreen = ({ navigation }) => {
 
   const handleSelectLocation = async () => {
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
+      // Request location permission
+      const hasPermission = await new Promise((resolve) => {
+        Geolocation.requestAuthorization(
+          () => resolve(true),
+          () => resolve(false)
+        );
+      });
       
-      if (status !== 'granted') {
+      if (!hasPermission) {
         Alert.alert('Permission requise', 'Permission de localisation requise pour ajouter un lieu.');
         return;
       }
 
-      const location = await Location.getCurrentPositionAsync({});
-      const address = await Location.reverseGeocodeAsync({
+      // Get current position
+      const location = await new Promise((resolve, reject) => {
+        Geolocation.getCurrentPosition(
+          (position) => resolve(position),
+          (error) => reject(error),
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+        );
+      });
+
+      // For reverse geocoding, we'll need to use a geocoding service
+      // Since @react-native-community/geolocation doesn't include reverse geocoding
+      // We'll use a simple location name based on coordinates
+      const locationName = `${location.coords.latitude.toFixed(4)}, ${location.coords.longitude.toFixed(4)}`;
+      
+      setSelectedLocation({
+        name: locationName,
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
       });
-
-      if (address && address.length > 0) {
-        const place = address[0];
-        const locationName = `${place.city || place.district || place.subregion}, ${place.region}`;
-        setSelectedLocation({
-          name: locationName,
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-        });
-      }
     } catch (error) {
       console.error('Erreur lors de la sélection de lieu:', error);
       Alert.alert('Erreur', 'Une erreur est survenue lors de la récupération de votre position.');
@@ -445,26 +453,29 @@ const JoyJerrScreen = ({ navigation }) => {
 
   const handleAddStory = async () => {
     try {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
-      if (permissionResult.granted === false) {
-        Alert.alert('Permission requise', 'Permission d\'accès à la galerie requise pour ajouter une story.');
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [9, 16],
+      const options = {
+        mediaType: 'photo',
         quality: 0.8,
-        allowsMultipleSelection: false,
-      });
+        includeBase64: false,
+      };
 
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        const asset = result.assets[0];
-        // Ici vous pouvez ajouter la logique pour créer une story
-        Alert.alert('Succès', 'Story ajoutée!');
-      }
+      launchImageLibrary(options, (response) => {
+        if (response.didCancel) {
+          return;
+        }
+        
+        if (response.errorMessage) {
+          console.error('Erreur lors de l\'ajout de story:', response.errorMessage);
+          Alert.alert('Erreur', 'Une erreur est survenue lors de l\'ajout de la story.');
+          return;
+        }
+
+        if (response.assets && response.assets.length > 0) {
+          const asset = response.assets[0];
+          // Ici vous pouvez ajouter la logique pour créer une story
+          Alert.alert('Succès', 'Story ajoutée!');
+        }
+      });
     } catch (error) {
       console.error('Erreur lors de l\'ajout de story:', error);
       Alert.alert('Erreur', 'Une erreur est survenue lors de l\'ajout de la story.');

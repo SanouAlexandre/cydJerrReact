@@ -1,0 +1,173 @@
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  Modal,
+  TouchableOpacity,
+  StyleSheet,
+  Switch,
+} from 'react-native';
+import { Picker } from '@react-native-picker/picker';
+import { Ionicons } from '@expo/vector-icons';
+
+const MembersFilters = ({ visible, onClose, onApply }) => {
+  const [gender, setGender] = useState('');
+  const [sort, setSort] = useState('');
+  const [following, setFollowing] = useState('-1');
+  const [moderation, setModeration] = useState('0');
+  const [onlyAvatars, setOnlyAvatars] = useState(false);
+
+  const handleApply = () => {
+    onApply({
+      gender,
+      sort,
+      following,
+      moderation,
+      onlyAvatars,
+    });
+    onClose();
+  };
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent={true}>
+      <View style={styles.overlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Filters</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Ionicons name="close" size={24} color="#333" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Gender */}
+          <View style={styles.filter}>
+            <Text style={styles.label}>Gender</Text>
+            <Picker
+              selectedValue={gender}
+              onValueChange={(value) => setGender(value)}
+              style={styles.picker}
+            >
+              <Picker.Item label="Any" value="" />
+              <Picker.Item label="Male" value="m" />
+              <Picker.Item label="Female" value="f" />
+            </Picker>
+          </View>
+
+          {/* Sort */}
+          <View style={styles.filter}>
+            <Text style={styles.label}>Sort</Text>
+            <Picker
+              selectedValue={sort}
+              onValueChange={(value) => setSort(value)}
+              style={styles.picker}
+            >
+              <Picker.Item label="Alphabetical" value="" />
+              <Picker.Item label="Recently online" value="peepso_last_activity|asc" />
+              <Picker.Item label="Latest members" value="registered|desc" />
+              <Picker.Item label="Most liked" value="most_liked|desc" />
+              <Picker.Item label="Most followers" value="most_followers|desc" />
+            </Picker>
+          </View>
+
+          {/* Following */}
+          <View style={styles.filter}>
+            <Text style={styles.label}>Following</Text>
+            <Picker
+              selectedValue={following}
+              onValueChange={(value) => setFollowing(value)}
+              style={styles.picker}
+            >
+              <Picker.Item label="All members" value="-1" />
+              <Picker.Item label="Members I follow" value="1" />
+              <Picker.Item label="Members I don't follow" value="0" />
+            </Picker>
+          </View>
+
+          {/* Moderation */}
+          <View style={styles.filter}>
+            <Text style={styles.label}>Moderation</Text>
+            <Picker
+              selectedValue={moderation}
+              onValueChange={(value) => setModeration(value)}
+              style={styles.picker}
+            >
+              <Picker.Item label="All members" value="0" />
+              <Picker.Item label="Reported" value="1" />
+            </Picker>
+          </View>
+
+          {/* Avatars */}
+          <View style={styles.filterRow}>
+            <Text style={styles.label}>Only users with avatars</Text>
+            <Switch
+              value={onlyAvatars}
+              onValueChange={(value) => setOnlyAvatars(value)}
+            />
+          </View>
+
+          {/* Buttons */}
+          <View style={styles.actions}>
+            <TouchableOpacity style={styles.buttonCancel} onPress={onClose}>
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.buttonApply} onPress={handleApply}>
+              <Text style={[styles.buttonText, { color: '#fff' }]}>Apply</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 15,
+    maxHeight: '90%',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  title: { fontSize: 18, fontWeight: 'bold' },
+  filter: { marginBottom: 15 },
+  filterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  label: { fontSize: 16, marginBottom: 5 },
+  picker: { height: 50, width: '100%' },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 20,
+  },
+  buttonCancel: {
+    marginRight: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 6,
+  },
+  buttonApply: {
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    backgroundColor: '#007AFF',
+    borderRadius: 6,
+  },
+  buttonText: { fontSize: 16, fontWeight: '600' },
+});
+
+export default MembersFilters;

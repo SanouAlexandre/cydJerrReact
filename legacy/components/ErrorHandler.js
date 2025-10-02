@@ -7,7 +7,7 @@ import {
   Alert,
 } from 'react-native';
 import { MaterialCommunityIcons } from 'react-native-vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
 
 /**
  * Composant de gestion d'erreurs réutilisable pour React Query

@@ -15,13 +15,21 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
-import { MaterialCommunityIcons, Feather, Ionicons } from 'react-native-vector-icons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Feather from 'react-native-vector-icons/Feather';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { useRegister } from '../hooks/useApi';
 import { validateRegisterForm } from '../services/api/authService';
-import * as ImagePicker from 'expo-image-picker';
+import {
+  launchImageLibrary,
+  launchCamera,
+  MediaType,
+  ImagePickerResponse,
+  RESULTS,
+} from 'react-native-image-picker';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -29,7 +37,7 @@ const SignupScreen = () => {
   const navigation = useNavigation();
   const registerMutation = useRegister();
   const { isLoading, error } = registerMutation;
-  
+
   const [profileImage, setProfileImage] = useState(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -40,12 +48,11 @@ const SignupScreen = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
-  
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const buttonScaleAnim = useRef(new Animated.Value(1)).current;
 
-  // Temporarily disable custom fonts to fix white screen
   const fontsLoaded = true;
 
   useEffect(() => {
@@ -81,106 +88,132 @@ const SignupScreen = () => {
           style: 'cancel',
         },
       ],
-      { cancelable: true }
+      { cancelable: true },
     );
   };
 
   const pickImageFromGallery = async () => {
     try {
-      console.log('Demande de permission pour accéder à la galerie...');
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
-      console.log('Résultat de la permission:', permissionResult);
-      
-      if (permissionResult.granted === false) {
-        Alert.alert('Permission requise', 'Permission d\'accès à la galerie requise pour sélectionner une photo de profil.');
-        return;
-      }
-
       console.log('Ouverture de la galerie...');
-      const result = await ImagePicker.launchImageLibraryAsync({
-        allowsEditing: true,
-        aspect: [1, 1],
+
+      const options = {
+        mediaType: 'photo',
+        includeBase64: false,
+        maxHeight: 2000,
+        maxWidth: 2000,
         quality: 0.8,
-        allowsMultipleSelection: false,
+      };
+
+      launchImageLibrary(options, response => {
+        if (response.didCancel) {
+          console.log("Sélection d'image annulée par l'utilisateur");
+          return;
+        }
+
+        if (response.errorMessage) {
+          console.error(
+            "Erreur lors de la sélection d'image:",
+            response.errorMessage,
+          );
+          Alert.alert(
+            'Erreur',
+            "Une erreur est survenue lors de la sélection de l'image. Veuillez réessayer.",
+          );
+          return;
+        }
+
+        if (response.assets && response.assets.length > 0) {
+          const imageUri = response.assets[0].uri;
+          console.log('Image sélectionnée:', imageUri);
+          setProfileImage(imageUri);
+          Alert.alert('Succès', 'Photo de profil mise à jour!');
+        }
       });
-
-      console.log('Résultat de la sélection d\'image:', result);
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        const imageUri = result.assets[0].uri;
-        console.log('Image sélectionnée:', imageUri);
-        setProfileImage(imageUri);
-        Alert.alert('Succès', 'Photo de profil mise à jour!');
-      } else {
-        console.log('Sélection d\'image annulée par l\'utilisateur');
-      }
     } catch (error) {
-      console.error('Erreur lors de la sélection d\'image:', error);
-      Alert.alert('Erreur', 'Une erreur est survenue lors de la sélection de l\'image. Veuillez réessayer.');
+      console.error("Erreur lors de la sélection d'image:", error);
+      Alert.alert(
+        'Erreur',
+        "Une erreur est survenue lors de la sélection de l'image. Veuillez réessayer.",
+      );
     }
   };
 
   const takePhotoWithCamera = async () => {
     try {
-      console.log('Demande de permission pour accéder à la caméra...');
-      const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-      
-      console.log('Résultat de la permission caméra:', permissionResult);
-      
-      if (permissionResult.granted === false) {
-        Alert.alert('Permission requise', 'Permission d\'accès à la caméra requise pour prendre une photo.');
-        return;
-      }
-
       console.log('Ouverture de la caméra...');
-      const result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
-        aspect: [1, 1],
+
+      const options = {
+        mediaType: 'photo',
+        includeBase64: false,
+        maxHeight: 2000,
+        maxWidth: 2000,
         quality: 0.8,
+      };
+
+      launchCamera(options, response => {
+        if (response.didCancel) {
+          console.log("Prise de photo annulée par l'utilisateur");
+          return;
+        }
+
+        if (response.errorMessage) {
+          console.error(
+            'Erreur lors de la prise de photo:',
+            response.errorMessage,
+          );
+          Alert.alert(
+            'Erreur',
+            'Une erreur est survenue lors de la prise de photo. Veuillez réessayer.',
+          );
+          return;
+        }
+
+        if (response.assets && response.assets.length > 0) {
+          const imageUri = response.assets[0].uri;
+          console.log('Photo prise:', imageUri);
+          setProfileImage(imageUri);
+          Alert.alert('Succès', 'Photo de profil mise à jour!');
+        }
       });
-
-      console.log('Résultat de la prise de photo:', result);
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        const imageUri = result.assets[0].uri;
-        console.log('Photo prise:', imageUri);
-        setProfileImage(imageUri);
-        Alert.alert('Succès', 'Photo de profil mise à jour!');
-      } else {
-        console.log('Prise de photo annulée par l\'utilisateur');
-      }
     } catch (error) {
       console.error('Erreur lors de la prise de photo:', error);
-      Alert.alert('Erreur', 'Une erreur est survenue lors de la prise de photo. Veuillez réessayer.');
+      Alert.alert(
+        'Erreur',
+        'Une erreur est survenue lors de la prise de photo. Veuillez réessayer.',
+      );
     }
   };
 
-  // Fonction de compatibilité pour les anciens appels
   const pickImage = showImagePickerOptions;
 
-  // Gestion des erreurs d'authentification
   useEffect(() => {
     if (error) {
-      // Déterminer le type d'erreur et afficher le message approprié
       let specificErrors = {};
-      
       const errorMessage = error.message || error.toString();
-      
+
       if (errorMessage.includes('email') || errorMessage.includes('Email')) {
-        if (errorMessage.includes('déjà utilisé') || errorMessage.includes('already exists')) {
-          specificErrors = { email: 'Cet email est déjà utilisé, veuillez en choisir un autre' };
+        if (
+          errorMessage.includes('déjà utilisé') ||
+          errorMessage.includes('already exists')
+        ) {
+          specificErrors = {
+            email: 'Cet email est déjà utilisé, veuillez en choisir un autre',
+          };
         } else {
           specificErrors = { email: 'Adresse email invalide' };
         }
-      } else if (errorMessage.includes('password') || errorMessage.includes('mot de passe')) {
-        specificErrors = { password: 'Le mot de passe ne respecte pas les critères requis' };
+      } else if (
+        errorMessage.includes('password') ||
+        errorMessage.includes('mot de passe')
+      ) {
+        specificErrors = {
+          password: 'Le mot de passe ne respecte pas les critères requis',
+        };
       } else {
         specificErrors = { general: errorMessage };
       }
-      
+
       setValidationErrors(specificErrors);
-      // Clear auth error handled by React Query
     }
   }, [error]);
 
@@ -202,13 +235,9 @@ const SignupScreen = () => {
   const handleSignup = async () => {
     if (isLoading) return;
 
-    // Animation de pression du bouton
     animateButtonPress();
-
-    // Clear previous errors
     setValidationErrors({});
-    
-    // Create form data
+
     const formData = {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
@@ -217,22 +246,26 @@ const SignupScreen = () => {
       confirmPassword,
     };
 
-    // Validate form client-side first
     const validation = validateRegisterForm(formData);
-    
+
     if (!validation.isValid) {
       setValidationErrors(validation.errors);
       return;
     }
 
-    // Additional checks for empty fields
     const emptyFieldErrors = {};
-    if (!formData.firstName) emptyFieldErrors.firstName = 'Veuillez remplir tous les champs requis';
-    if (!formData.lastName) emptyFieldErrors.lastName = 'Veuillez remplir tous les champs requis';
-    if (!formData.email) emptyFieldErrors.email = 'Veuillez remplir tous les champs requis';
-    if (!formData.password) emptyFieldErrors.password = 'Veuillez remplir tous les champs requis';
-    if (!formData.confirmPassword) emptyFieldErrors.confirmPassword = 'Veuillez remplir tous les champs requis';
-    
+    if (!formData.firstName)
+      emptyFieldErrors.firstName = 'Veuillez remplir tous les champs requis';
+    if (!formData.lastName)
+      emptyFieldErrors.lastName = 'Veuillez remplir tous les champs requis';
+    if (!formData.email)
+      emptyFieldErrors.email = 'Veuillez remplir tous les champs requis';
+    if (!formData.password)
+      emptyFieldErrors.password = 'Veuillez remplir tous les champs requis';
+    if (!formData.confirmPassword)
+      emptyFieldErrors.confirmPassword =
+        'Veuillez remplir tous les champs requis';
+
     if (Object.keys(emptyFieldErrors).length > 0) {
       setValidationErrors(emptyFieldErrors);
       return;
@@ -249,44 +282,67 @@ const SignupScreen = () => {
       };
 
       await registerMutation.mutateAsync(userData);
-      
-      // Succès - afficher le message et naviguer
+
       Alert.alert(
         'Inscription réussie',
         'Votre compte a été créé avec succès ! Veuillez vérifier votre email.',
         [
           {
             text: 'OK',
-            onPress: () => navigation.navigate('EmailVerification', { email: formData.email })
-          }
-        ]
+            onPress: () =>
+              navigation.navigate('EmailVerification', {
+                email: formData.email,
+              }),
+          },
+        ],
       );
     } catch (error) {
-      // Gérer les erreurs spécifiques
-      console.error('Erreur lors de l\'inscription:', error);
-      
+      console.error("Erreur lors de l'inscription:", error);
+
       let specificErrors = {};
-      
+
       if (error.message) {
-        if (error.message.includes('email') || error.message.includes('Email')) {
-          if (error.message.includes('déjà utilisé') || error.message.includes('already exists') || error.message.includes('already in use')) {
-            specificErrors = { email: 'Cet email est déjà utilisé, veuillez en choisir un autre' };
+        if (
+          error.message.includes('email') ||
+          error.message.includes('Email')
+        ) {
+          if (
+            error.message.includes('déjà utilisé') ||
+            error.message.includes('already exists') ||
+            error.message.includes('already in use')
+          ) {
+            specificErrors = {
+              email: 'Cet email est déjà utilisé, veuillez en choisir un autre',
+            };
           } else {
             specificErrors = { email: 'Adresse email invalide' };
           }
-        } else if (error.message.includes('password') || error.message.includes('mot de passe')) {
-          specificErrors = { password: 'Le mot de passe ne respecte pas les critères requis' };
-        } else if (error.message.includes('firstName') || error.message.includes('prénom')) {
+        } else if (
+          error.message.includes('password') ||
+          error.message.includes('mot de passe')
+        ) {
+          specificErrors = {
+            password: 'Le mot de passe ne respecte pas les critères requis',
+          };
+        } else if (
+          error.message.includes('firstName') ||
+          error.message.includes('prénom')
+        ) {
           specificErrors = { firstName: 'Le prénom est invalide' };
-        } else if (error.message.includes('lastName') || error.message.includes('nom')) {
+        } else if (
+          error.message.includes('lastName') ||
+          error.message.includes('nom')
+        ) {
           specificErrors = { lastName: 'Le nom est invalide' };
         } else {
           specificErrors = { general: error.message };
         }
       } else {
-        specificErrors = { general: 'Erreur lors de l\'inscription. Veuillez réessayer.' };
+        specificErrors = {
+          general: "Erreur lors de l'inscription. Veuillez réessayer.",
+        };
       }
-      
+
       setValidationErrors(specificErrors);
     }
   };
@@ -295,12 +351,11 @@ const SignupScreen = () => {
     navigation.navigate('Login');
   };
 
-  const handleSocialSignup = async (provider) => {
-    // Fonctionnalité en développement - pas de navigation
+  const handleSocialSignup = async provider => {
     Alert.alert(
       'Fonctionnalité en développement',
       `L'inscription avec ${provider} sera bientôt disponible.`,
-      [{ text: 'OK' }]
+      [{ text: 'OK' }],
     );
   };
 
@@ -316,32 +371,40 @@ const SignupScreen = () => {
     showPasswordToggle = false,
     showPasswordState = false,
     onTogglePassword = null,
+    returnKeyType = 'next',
+    onSubmitEditing = null,
   }) => {
     const isFocused = focusedField === fieldName;
     const hasError = validationErrors[fieldName];
-    
+
     return (
       <View style={styles.inputContainer}>
-        <BlurView blurAmount={isFocused ? 25 : 15} blurType="light" style={[
-            styles.inputBlur,
-            isFocused && styles.inputBlurFocused,
-            hasError && styles.inputBlurError,
+        <View
+          style={[
+            styles.inputWrapper,
+            isFocused && styles.inputWrapperFocused,
+            hasError && styles.inputWrapperError,
           ]}
         >
-          <View style={styles.inputWrapper}>
+          <BlurView
+            blurAmount={isFocused ? 25 : 15}
+            blurType="light"
+            style={styles.inputBlur}
+            reducedTransparencyFallbackColor="rgba(26, 26, 46, 0.8)"
+          />
+          <View style={styles.inputContent}>
             <MaterialCommunityIcons
               name={icon}
               size={20}
-              color={hasError ? '#FF6B6B' : (isFocused ? '#FFDE59' : '#FFFFFF80')}
+              color={hasError ? '#FF6B6B' : isFocused ? '#FFDE59' : '#FFFFFF80'}
             />
             <TextInput
               style={styles.textInput}
               placeholder={placeholder}
               placeholderTextColor="#FFFFFF60"
               value={value}
-              onChangeText={(text) => {
+              onChangeText={text => {
                 onChangeText(text);
-                // Effacer l'erreur lors de la saisie
                 if (hasError) {
                   setValidationErrors(prev => {
                     const newErrors = { ...prev };
@@ -356,11 +419,19 @@ const SignupScreen = () => {
               keyboardType={keyboardType}
               autoCapitalize={autoCapitalize}
               autoCorrect={false}
+              editable={!isLoading}
+              selectTextOnFocus={true}
+              returnKeyType={returnKeyType}
+              onSubmitEditing={onSubmitEditing}
+              blurOnSubmit={returnKeyType === 'done'}
+              textContentType={secureTextEntry ? 'password' : 'none'}
+              importantForAutofill={secureTextEntry ? 'yes' : 'auto'}
             />
             {showPasswordToggle && (
               <TouchableOpacity
                 onPress={onTogglePassword}
                 style={styles.eyeButton}
+                activeOpacity={0.7}
               >
                 <Feather
                   name={showPasswordState ? 'eye' : 'eye-off'}
@@ -370,21 +441,20 @@ const SignupScreen = () => {
               </TouchableOpacity>
             )}
           </View>
-        </BlurView>
-        {hasError && (
-          <Text style={styles.errorText}>{hasError}</Text>
-        )}
+        </View>
+        {hasError && <Text style={styles.errorText}>{hasError}</Text>}
       </View>
     );
   };
 
-  // Fonts loading check removed temporarily
-
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-      
-      {/* Background Gradient */}
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="transparent"
+        translucent
+      />
+
       <LinearGradient
         colors={['#1a1a2e', '#16213e', '#0f3460', '#533483']}
         style={styles.backgroundGradient}
@@ -417,8 +487,21 @@ const SignupScreen = () => {
                 onPress={() => navigation.goBack()}
                 activeOpacity={0.7}
               >
-                <BlurView blurAmount={15} blurType="light" style={styles.backButtonBlur}>
-                  <Text style={{ fontSize: 24, color: '#FFFFFF', fontWeight: 'bold' }}>‹</Text>
+                <BlurView
+                  blurAmount={15}
+                  blurType="light"
+                  style={styles.backButtonBlur}
+                  reducedTransparencyFallbackColor="rgba(26, 26, 46, 0.8)"
+                >
+                  <Text
+                    style={{
+                      fontSize: 24,
+                      color: '#FFFFFF',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    ‹
+                  </Text>
                 </BlurView>
               </TouchableOpacity>
             </View>
@@ -430,9 +513,17 @@ const SignupScreen = () => {
                 onPress={pickImage}
                 activeOpacity={0.8}
               >
-                <BlurView blurAmount={20} blurType="light" style={styles.profileImageBlur}>
+                <BlurView
+                  blurAmount={20}
+                  blurType="light"
+                  style={styles.profileImageBlur}
+                  reducedTransparencyFallbackColor="rgba(26, 26, 46, 0.8)"
+                >
                   {profileImage ? (
-                    <Image source={{ uri: profileImage }} style={styles.profileImage} />
+                    <Image
+                      source={{ uri: profileImage }}
+                      style={styles.profileImage}
+                    />
                   ) : (
                     <MaterialCommunityIcons
                       name="account-plus"
@@ -441,12 +532,17 @@ const SignupScreen = () => {
                     />
                   )}
                 </BlurView>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.cameraButton}
                   onPress={pickImage}
                   activeOpacity={0.7}
                 >
-                  <BlurView blurAmount={20} blurType="light" style={styles.cameraButtonBlur}>
+                  <BlurView
+                    blurAmount={20}
+                    blurType="light"
+                    style={styles.cameraButtonBlur}
+                    reducedTransparencyFallbackColor="rgba(26, 26, 46, 0.8)"
+                  >
                     <MaterialCommunityIcons
                       name="camera"
                       size={16}
@@ -502,6 +598,7 @@ const SignupScreen = () => {
                 showPasswordToggle: true,
                 showPasswordState: showPassword,
                 onTogglePassword: () => setShowPassword(!showPassword),
+                returnKeyType: 'next',
               })}
 
               {renderInput({
@@ -514,13 +611,18 @@ const SignupScreen = () => {
                 autoCapitalize: 'none',
                 showPasswordToggle: true,
                 showPasswordState: showConfirmPassword,
-                onTogglePassword: () => setShowConfirmPassword(!showConfirmPassword),
+                onTogglePassword: () =>
+                  setShowConfirmPassword(!showConfirmPassword),
+                returnKeyType: 'done',
+                onSubmitEditing: handleSignup,
               })}
 
               {/* General Error Message */}
               {validationErrors.general && (
                 <View style={styles.generalErrorContainer}>
-                  <Text style={styles.generalErrorText}>{validationErrors.general}</Text>
+                  <Text style={styles.generalErrorText}>
+                    {validationErrors.general}
+                  </Text>
                 </View>
               )}
 
@@ -532,15 +634,19 @@ const SignupScreen = () => {
               >
                 <TouchableOpacity
                   style={[
-                    styles.signupButton, 
-                    isLoading && styles.signupButtonDisabled
+                    styles.signupButton,
+                    isLoading && styles.signupButtonDisabled,
                   ]}
                   onPress={handleSignup}
                   activeOpacity={isLoading ? 1 : 0.8}
                   disabled={isLoading}
                 >
                   <LinearGradient
-                    colors={isLoading ? ['#CCCCCC', '#AAAAAA'] : ['#FFDE59', '#FFD700']}
+                    colors={
+                      isLoading
+                        ? ['#CCCCCC', '#AAAAAA']
+                        : ['#FFDE59', '#FFD700']
+                    }
                     style={styles.signupGradient}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
@@ -548,7 +654,11 @@ const SignupScreen = () => {
                     {isLoading ? (
                       <View style={styles.loadingContainer}>
                         <ActivityIndicator size="small" color="#000000" />
-                        <Text style={[styles.signupButtonText, { marginLeft: 10 }]}>Inscription...</Text>
+                        <Text
+                          style={[styles.signupButtonText, { marginLeft: 10 }]}
+                        >
+                          Inscription...
+                        </Text>
                       </View>
                     ) : (
                       <Text style={styles.signupButtonText}>S'inscrire</Text>
@@ -572,7 +682,12 @@ const SignupScreen = () => {
                 onPress={() => handleSocialSignup('Google')}
                 activeOpacity={0.8}
               >
-                <BlurView blurAmount={15} blurType="light" style={styles.socialButtonBlur}>
+                <BlurView
+                  blurAmount={15}
+                  blurType="light"
+                  style={styles.socialButtonBlur}
+                  reducedTransparencyFallbackColor="rgba(26, 26, 46, 0.8)"
+                >
                   <MaterialCommunityIcons
                     name="google"
                     size={24}
@@ -586,7 +701,12 @@ const SignupScreen = () => {
                 onPress={() => handleSocialSignup('Apple')}
                 activeOpacity={0.8}
               >
-                <BlurView blurAmount={15} blurType="light" style={styles.socialButtonBlur}>
+                <BlurView
+                  blurAmount={15}
+                  blurType="light"
+                  style={styles.socialButtonBlur}
+                  reducedTransparencyFallbackColor="rgba(26, 26, 46, 0.8)"
+                >
                   <MaterialCommunityIcons
                     name="apple"
                     size={24}
@@ -600,7 +720,12 @@ const SignupScreen = () => {
                 onPress={() => handleSocialSignup('Twitter')}
                 activeOpacity={0.8}
               >
-                <BlurView blurAmount={15} blurType="light" style={styles.socialButtonBlur}>
+                <BlurView
+                  blurAmount={15}
+                  blurType="light"
+                  style={styles.socialButtonBlur}
+                  reducedTransparencyFallbackColor="rgba(26, 26, 46, 0.8)"
+                >
                   <MaterialCommunityIcons
                     name="twitter"
                     size={24}
@@ -767,6 +892,9 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     fontSize: 16,
     color: '#FFFFFF',
+    minHeight: 44,
+    paddingVertical: 10,
+    textAlignVertical: 'center',
   },
   eyeButton: {
     padding: 5,

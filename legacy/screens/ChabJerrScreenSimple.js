@@ -4,7 +4,7 @@ import {
   Text,
   StyleSheet,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import LinearGradient from 'react-native-linear-gradient';
 
 const ChabJerrScreenSimple = () => {
   const [activeTab, setActiveTab] = useState('Accueil');

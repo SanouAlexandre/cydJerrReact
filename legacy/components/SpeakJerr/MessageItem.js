@@ -8,7 +8,7 @@ import {
   Dimensions,
   Alert,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Icon from 'react-native-vector-icons/Ionicons';
 import Video from 'react-native-video';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -137,7 +137,7 @@ const MessageItem = memo(({
               />
             ) : (
               <View style={[styles.imageMessage, styles.errorMedia]}>
-                <Ionicons name="image-outline" size={32} color="#8E8E93" />
+                <Icon name="image-outline" size={32} color="#8E8E93" />
                 <Text style={styles.errorText}>Image non disponible</Text>
               </View>
             )}

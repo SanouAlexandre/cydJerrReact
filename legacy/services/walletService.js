@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL, ENDPOINTS } from '../config/api';
 import tokenUtils from '../utils/tokenUtils';
-import * as Clipboard from 'expo-clipboard';
+import Clipboard from '@react-native-clipboard/clipboard';
 import solanaService from './solanaService';
 
 class WalletService {
@@ -439,7 +439,7 @@ class WalletService {
   // Copier l'adresse dans le presse-papiers
   async copyAddressToClipboard(address) {
     try {
-      await Clipboard.setStringAsync(address);
+      await Clipboard.setString(address);
       return true;
     } catch (error) {
       console.error('Erreur lors de la copie:', error);

@@ -17,7 +17,7 @@ import { Ionicons } from 'react-native-vector-icons';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectUser } from '../../redux/userSlice';
 import { createStatus } from '../../redux/speakjerrSlice';
-import * as ImagePicker from 'expo-image-picker';
+import {launchImageLibrary, launchCamera, MediaType, ImagePickerResponse} from 'react-native-image-picker';
 
 const CreateStatusScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -31,28 +31,25 @@ const CreateStatusScreen = ({ navigation }) => {
 
   const handleSelectMedia = async () => {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(
-          'Permission requise',
-          'Nous avons besoin de votre permission pour accéder à vos photos.'
-        );
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.All,
-        allowsEditing: true,
-        aspect: [9, 16], // Format story
+      const options = {
+        mediaType: 'mixed',
         quality: 0.8,
-        videoMaxDuration: 30, // 30 secondes max pour les vidéos
-      });
+        videoQuality: 'medium',
+        durationLimit: 30,
+      };
 
-      if (!result.canceled && result.assets[0]) {
-        const asset = result.assets[0];
-        setSelectedMedia(asset.uri);
-        setMediaType(asset.type === 'video' ? 'video' : 'image');
-      }
+      launchImageLibrary(options, (response) => {
+        if (response.didCancel) {
+          console.log('Sélection de média annulée par l\'utilisateur');
+        } else if (response.errorMessage) {
+          console.error('Erreur lors de la sélection du média:', response.errorMessage);
+          Alert.alert('Erreur', 'Impossible de sélectionner le média');
+        } else if (response.assets && response.assets[0]) {
+          const asset = response.assets[0];
+          setSelectedMedia(asset.uri);
+          setMediaType(asset.type && asset.type.includes('video') ? 'video' : 'image');
+        }
+      });
     } catch (error) {
       console.error('Erreur lors de la sélection du média:', error);
       Alert.alert('Erreur', 'Impossible de sélectionner le média');
@@ -61,26 +58,24 @@ const CreateStatusScreen = ({ navigation }) => {
 
   const handleTakePhoto = async () => {
     try {
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(
-          'Permission requise',
-          'Nous avons besoin de votre permission pour accéder à votre caméra.'
-        );
-        return;
-      }
-
-      const result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
-        aspect: [9, 16],
+      const options = {
+        mediaType: 'photo',
         quality: 0.8,
-      });
+        includeBase64: false,
+      };
 
-      if (!result.canceled && result.assets[0]) {
-        const asset = result.assets[0];
-        setSelectedMedia(asset.uri);
-        setMediaType('image');
-      }
+      launchCamera(options, (response) => {
+        if (response.didCancel) {
+          console.log('Prise de photo annulée par l\'utilisateur');
+        } else if (response.errorMessage) {
+          console.error('Erreur lors de la prise de photo:', response.errorMessage);
+          Alert.alert('Erreur', 'Impossible de prendre la photo');
+        } else if (response.assets && response.assets[0]) {
+          const asset = response.assets[0];
+          setSelectedMedia(asset.uri);
+          setMediaType('image');
+        }
+      });
     } catch (error) {
       console.error('Erreur lors de la prise de photo:', error);
       Alert.alert('Erreur', 'Impossible de prendre la photo');

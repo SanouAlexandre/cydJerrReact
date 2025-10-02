@@ -14,10 +14,10 @@ import {
   Image,
   KeyboardAvoidingView,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
 import { Ionicons, MaterialIcons } from 'react-native-vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Camera } from 'expo-camera';
+import { Camera, useCameraDevices, useCameraPermission } from 'react-native-vision-camera';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../redux/userSlice';
 import { 
@@ -42,8 +42,6 @@ const LiveStreamScreen = () => {
   const { liveId, mode = 'viewer' } = route.params; // mode: 'streamer' ou 'viewer'
   const user = useSelector(selectUser);
   
-  const [hasPermission, setHasPermission] = useState(null);
-  const [cameraType, setCameraType] = useState(Camera.Constants.Type.front);
   const [isRecording, setIsRecording] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
@@ -53,10 +51,15 @@ const LiveStreamScreen = () => {
   const [viewerCount, setViewerCount] = useState(0);
   const [isLiveActive, setIsLiveActive] = useState(false);
   const [streamDuration, setStreamDuration] = useState(0);
+  const [currentCameraType, setCurrentCameraType] = useState('front');
   
   const cameraRef = useRef(null);
   const chatScrollRef = useRef(null);
   const durationIntervalRef = useRef(null);
+  
+  const { hasPermission, requestPermission } = useCameraPermission();
+  const devices = useCameraDevices();
+  const device = currentCameraType === 'front' ? devices.front : devices.back;
   
   const startLiveMutation = useStartLive();
   const stopLiveMutation = useStopLive();
@@ -67,11 +70,10 @@ const LiveStreamScreen = () => {
   const { data: participants = [] } = useLiveParticipants(liveId);
 
   useEffect(() => {
-    (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
-    })();
-  }, []);
+    if (!hasPermission) {
+      requestPermission();
+    }
+  }, [hasPermission, requestPermission]);
 
   useEffect(() => {
     if (mode === 'viewer' && liveId) {
@@ -159,10 +161,10 @@ const LiveStreamScreen = () => {
   };
 
   const toggleCamera = () => {
-    setCameraType(
-      cameraType === Camera.Constants.Type.back
-        ? Camera.Constants.Type.front
-        : Camera.Constants.Type.back
+    setCurrentCameraType(
+      currentCameraType === 'back'
+        ? 'front'
+        : 'back'
     );
   };
 
@@ -221,19 +223,22 @@ const LiveStreamScreen = () => {
       {/* Camera/Video View */}
       <View style={styles.videoContainer}>
         {mode === 'streamer' ? (
-          <Camera
-            ref={cameraRef}
-            style={styles.camera}
-            type={cameraType}
-            ratio="16:9"
-          >
-            {isCameraOff && (
-              <View style={styles.cameraOffOverlay}>
-                <Ionicons name="videocam-off" size={scale(48)} color={colors.white} />
-                <Text style={styles.cameraOffText}>Caméra désactivée</Text>
-              </View>
-            )}
-          </Camera>
+          device && (
+            <Camera
+              ref={cameraRef}
+              style={styles.camera}
+              device={device}
+              isActive={!isCameraOff}
+              video={true}
+            >
+              {isCameraOff && (
+                <View style={styles.cameraOffOverlay}>
+                  <Ionicons name="videocam-off" size={scale(48)} color={colors.white} />
+                  <Text style={styles.cameraOffText}>Caméra désactivée</Text>
+                </View>
+              )}
+            </Camera>
+          )
         ) : (
           <View style={styles.viewerContainer}>
             <Image 

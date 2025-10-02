@@ -15,7 +15,7 @@ import {
   Image,
   Modal
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
 import { Ionicons } from 'react-native-vector-icons';
 import walletService from '../services/walletService';

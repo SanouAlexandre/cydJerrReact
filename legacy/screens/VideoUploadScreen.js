@@ -13,10 +13,11 @@ import {
   Platform,
   Dimensions,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
-import * as DocumentPicker from 'expo-document-picker';
+import LinearGradient from 'react-native-linear-gradient';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import {launchImageLibrary, MediaType, ImagePickerResponse} from 'react-native-image-picker';
+import DocumentPicker from '@react-native-documents/picker';
 import Video from 'react-native-video';
 import { moderateScale, verticalScale, scale } from 'react-native-size-matters';
 import { colors, fontSizes, spacing, borderRadius, shadows } from '../styles/globalStyles';
@@ -45,16 +46,20 @@ const VideoUploadScreen = ({ navigation }) => {
 
   const pickVideo = async () => {
     try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: 'video/*',
-        copyToCacheDirectory: true,
+      const result = await DocumentPicker.pick({
+        type: [DocumentPicker.types.video],
+        allowMultiSelection: false,
       });
 
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        const asset = result.assets[0];
+      if (result && result.length > 0) {
+        const asset = result[0];
         setSelectedVideo(asset);
       }
     } catch (error) {
+      if (DocumentPicker.isCancel(error)) {
+        // User cancelled the picker
+        return;
+      }
       console.error('Erreur lors de la sélection de la vidéo:', error);
       Alert.alert('Erreur', 'Impossible de sélectionner la vidéo');
     }
@@ -62,16 +67,27 @@ const VideoUploadScreen = ({ navigation }) => {
 
   const pickThumbnail = async () => {
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [16, 9],
+      const options = {
+        mediaType: 'photo',
         quality: 0.8,
-      });
+        includeBase64: false,
+      };
 
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setThumbnail(result.assets[0]);
-      }
+      launchImageLibrary(options, (response) => {
+        if (response.didCancel) {
+          return;
+        }
+        
+        if (response.errorMessage) {
+          console.error('Erreur lors de la sélection de la miniature:', response.errorMessage);
+          Alert.alert('Erreur', 'Impossible de sélectionner la miniature');
+          return;
+        }
+
+        if (response.assets && response.assets.length > 0) {
+          setThumbnail(response.assets[0]);
+        }
+      });
     } catch (error) {
       console.error('Erreur lors de la sélection de la miniature:', error);
       Alert.alert('Erreur', 'Impossible de sélectionner la miniature');

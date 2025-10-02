@@ -1,0 +1,155 @@
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  StyleSheet,
+} from "react-native";
+import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
+
+interface FilterOption {
+  label: string;
+  value: string;
+  icon?: keyof typeof Ionicons.glyphMap;
+  description?: string;
+}
+
+export default function PostFilters() {
+  const [selectedFilter, setSelectedFilter] = useState("core_community");
+  const [showMyPosts, setShowMyPosts] = useState("show_mine");
+  const [sortBy, setSortBy] = useState("new");
+
+  const filters: FilterOption[] = [
+    {
+      label: "Community",
+      value: "core_community",
+      icon: "people",
+      description: "Posts from the entire community",
+    },
+    {
+      label: "Friends",
+      value: "friends",
+      icon: "person",
+      description: "Posts from your friends",
+    },
+    {
+      label: "Following",
+      value: "core_following",
+      icon: "checkmark-done",
+      description: "Posts you follow",
+    },
+    {
+      label: "Saved Posts",
+      value: "core_saved",
+      icon: "bookmark",
+      description: "Posts you added to Saved list",
+    },
+    {
+      label: "Scheduled",
+      value: "core_scheduled",
+      icon: "calendar",
+      description: "Community posts scheduled for later",
+    },
+    {
+      label: "Moderation",
+      value: "core_reported",
+      icon: "flag",
+      description: "All reported content",
+    },
+  ];
+
+  const sortOptions: FilterOption[] = [
+    { label: "New posts", value: "new", icon: "chatbubble" },
+    { label: "New posts & comments", value: "new_and_commented", icon: "chatbubbles" },
+  ];
+
+  const myPostsOptions: FilterOption[] = [
+    { label: "Show my posts", value: "show_mine", icon: "person-add" },
+    { label: "Hide my posts", value: "hide_mine", icon: "person-remove" },
+  ];
+
+  const renderOption = (
+    item: FilterOption,
+    selected: string,
+    onSelect: (v: string) => void
+  ) => (
+    <TouchableOpacity
+      style={[
+        styles.option,
+        selected === item.value && styles.optionSelected,
+      ]}
+      onPress={() => onSelect(item.value)}
+    >
+      <Ionicons
+        name={item.icon || "ellipse-outline"}
+        size={18}
+        color={selected === item.value ? "#007bff" : "#555"}
+      />
+      <View style={{ marginLeft: 8 }}>
+        <Text style={styles.optionLabel}>{item.label}</Text>
+        {item.description && (
+          <Text style={styles.optionDescription}>{item.description}</Text>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Filters</Text>
+
+      {/* Post Source Filter */}
+      <Text style={styles.sectionTitle}>Post Source</Text>
+      <FlatList
+        data={filters}
+        keyExtractor={(item) => item.value}
+        renderItem={({ item }) =>
+          renderOption(item, selectedFilter, setSelectedFilter)
+        }
+      />
+
+      {/* My Posts Filter */}
+      <Text style={styles.sectionTitle}>My Posts</Text>
+      <FlatList
+        data={myPostsOptions}
+        keyExtractor={(item) => item.value}
+        renderItem={({ item }) =>
+          renderOption(item, showMyPosts, setShowMyPosts)
+        }
+      />
+
+      {/* Sort By Filter */}
+      <Text style={styles.sectionTitle}>Sort By</Text>
+      <FlatList
+        data={sortOptions}
+        keyExtractor={(item) => item.value}
+        renderItem={({ item }) =>
+          renderOption(item, sortBy, setSortBy)
+        }
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { backgroundColor: "#fff", padding: 16, borderRadius: 10 },
+  title: { fontSize: 20, fontWeight: "bold", marginBottom: 10 },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#444",
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  option: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  optionSelected: { backgroundColor: "#e6f0ff" },
+  optionLabel: { fontSize: 16, color: "#333" },
+  optionDescription: { fontSize: 12, color: "#777" },
+});
